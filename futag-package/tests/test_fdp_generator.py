@@ -72,3 +72,25 @@ class TestFdpWritableString:
     def test_const_char_points_into_string(self, fdp_generator):
         code = self._gen(fdp_generator, "const char *")
         assert "reinterpret_cast<const char *>(str_dst_fdp.c_str())" in code
+
+
+class TestFdpInputFile:
+    """A file path parameter gets a file whose content comes from the provider."""
+
+    def _gen(self, fdp_generator, type_name="const char *"):
+        info = {"type_name": type_name, "base_type_name": "char", "local_qualifier": "", "gen_type": 1, "length": 0}
+        fdp_generator.state.file_idx = 1
+        return fdp_generator._gen_input_file("f_fname0", info)
+
+    def test_content_from_provider(self, fdp_generator):
+        code = "".join(self._gen(fdp_generator)["gen_lines"])
+        assert "f_fname0_content = provider.ConsumeRandomLengthString();" in code
+        assert "futag_pos" not in code and "file_size" not in code
+        assert "fwrite(f_fname0_content.data(), 1, f_fname0_content.size(), fp_0);" in code
+        assert "const char * f_fname0 = f_fname0_path;" in code
+
+    def test_name_per_process_and_removed(self, fdp_generator):
+        r = self._gen(fdp_generator)
+        assert "getpid()" in "".join(r["gen_lines"])
+        assert "<unistd.h>" in fdp_generator.state.header
+        assert r["gen_free"] == ["remove(f_fname0_path);\n"]

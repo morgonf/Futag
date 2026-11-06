@@ -398,13 +398,16 @@ void FutagArgUsageDeterminer::run(const MatchFinder::MatchResult &Result) {
          */
         if (param &&
             param->getDecl()->getNameAsString() ==
-                curr_param_context["param_name"] &&
-            curr_param_context["param_usage"] ==
-                ArgumentsUsage::ArgumentTypeToStr(
-                    ArgumentsUsage::AT::UNKNOWN)) {
-            curr_param_context["param_usage"] =
-                argUsage.DetermineArgumentTypeStr(func->getNameAsString(), i,
-                                                  callExpr);
+                curr_param_context["param_name"]) {
+            // Keep the strongest type over all calls, not the first one.
+            auto deduced = argUsage.DetermineArgumentType(
+                func->getNameAsString(), i, callExpr);
+            std::string current = curr_param_context["param_usage"];
+            if (ArgumentsUsage::Priority(deduced) <
+                ArgumentsUsage::PriorityOfStr(current)) {
+                curr_param_context["param_usage"] =
+                    ArgumentsUsage::ArgumentTypeToStr(deduced);
+            }
         }
     }
 

@@ -60,6 +60,38 @@ public:
   using AT = ArgumentType;
   using ATP = ArgumentTypePriority;
 
+  // Rank of a deduced type, lower is stronger (see ArgumentTypePriority).
+  // A parameter passed to strlen() and later to fopen() must end up as a
+  // file path, so a later call may replace a weaker type.
+  static int Priority(ArgumentType argType) {
+    switch (argType) {
+    case AT::FILE_PATH_READ:
+      return (int)ATP::FILE_PATH_READ;
+    case AT::FILE_PATH_RW:
+      return (int)ATP::FILE_PATH_RW;
+    case AT::FILE_PATH_WRITE:
+      return (int)ATP::FILE_PATH_WRITE;
+    case AT::FILE_PATH:
+      return (int)ATP::FILE_PATH;
+    case AT::FILE_DESCRIPTOR:
+      return (int)ATP::FILE_DESCRIPTOR;
+    case AT::SIZE_FIELD:
+      return (int)ATP::SIZE_FIELD;
+    case AT::C_STRING:
+      return (int)ATP::C_STRING;
+    default:
+      return (int)ATP::UNKNOWN;
+    }
+  }
+
+  static int PriorityOfStr(const std::string &argTypeStr) {
+    for (int i = 0; i < (int)AT::LAST; i++) {
+      if (ArgumentTypeToStr((AT)i) == argTypeStr)
+        return Priority((AT)i);
+    }
+    return (int)ATP::UNKNOWN;
+  }
+
   // Converts elements from ArgumentType enum to string
   static std::string ArgumentTypeToStr(ArgumentType argType) {
     switch (argType) {
@@ -140,15 +172,21 @@ public:
                                      uint32_t argumentIdx,
                                      const CallExpr *callExpr) {
     if (fuctionArgsToTypes.find(functionName) != fuctionArgsToTypes.end()) {
-      AT currentArgType = fuctionArgsToTypes.at(functionName).at(argumentIdx);
+      const auto &argTypes = fuctionArgsToTypes.at(functionName);
+      // open(path, flags, mode) has more arguments than the table lists
+      if (argumentIdx >= argTypes.size())
+        return AT::UNKNOWN;
+      AT currentArgType = argTypes[argumentIdx];
 
       // Parse fopen/open flags and try to determine in which mode the file is
       // opened (read/write)
                     
-          if (currentArgType == AT::FILE_PATH && functionName == "open") {
+      if (currentArgType == AT::FILE_PATH &&
+          (functionName == "open" || functionName == "open64")) {
         currentArgType = DetermineFileModeOpen(argumentIdx, callExpr);
       } else if (currentArgType == AT::FILE_PATH &&
-                 functionName == "fopen") {
+                 (functionName == "fopen" || functionName == "fopen64" ||
+                  functionName == "freopen")) {
         currentArgType = DetermineFileModeFopen(argumentIdx, callExpr);
       }
       return currentArgType;
@@ -172,6 +210,17 @@ private:
           {"read", {AT::FILE_DESCRIPTOR, AT::UNKNOWN, AT::SIZE_FIELD}},
           {"open", {AT::FILE_PATH, AT::UNKNOWN}},
           {"fopen", {AT::FILE_PATH, AT::UNKNOWN}},
+          {"open64", {AT::FILE_PATH, AT::UNKNOWN}},
+          {"fopen64", {AT::FILE_PATH, AT::UNKNOWN}},
+          {"freopen", {AT::FILE_PATH, AT::UNKNOWN, AT::UNKNOWN}},
+          {"creat", {AT::FILE_PATH_WRITE, AT::UNKNOWN}},
+          {"stat", {AT::FILE_PATH, AT::UNKNOWN}},
+          {"lstat", {AT::FILE_PATH, AT::UNKNOWN}},
+          {"access", {AT::FILE_PATH, AT::UNKNOWN}},
+          {"opendir", {AT::FILE_PATH}},
+          {"unlink", {AT::FILE_PATH}},
+          {"remove", {AT::FILE_PATH}},
+          {"rename", {AT::FILE_PATH, AT::FILE_PATH}},
           {"write", {AT::FILE_DESCRIPTOR, AT::UNKNOWN, AT::SIZE_FIELD}},
           // Currently I've replaced all C_STRING with UNKNOWN, to
           // avoid (for now) arguments priority problem.

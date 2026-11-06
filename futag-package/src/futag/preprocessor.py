@@ -684,7 +684,11 @@ class Builder(_BaseBuilder):
             for f in function_list:
                 for call_func in function_list[f]["call_contexts"]:
                     if call_func["target_func_hash"] == function_list[func]["hash"]:
-                        contexts.append(call_func)
+                        # Keep the caller: generators use it to carry parameter
+                        # usage (a file path, for example) up through wrappers.
+                        contexts.append(dict(call_func,
+                                             caller_func_hash=function_list[f]["hash"],
+                                             caller_func_name=function_list[f]["name"]))
             location = _parse_location(function_list[func]["location"])
 
             fs = {

@@ -493,6 +493,11 @@ class BaseGenerator(ABC):
             # if (self.library_root / tmp_output_path).exists():
             #     delete_folder(self.library_root / tmp_output_path)
 
+            self.usage_stats = self._propagate_param_usage(self.target_library["functions"] or [])
+            if self.usage_stats["propagated"] or self.usage_stats["contexts_without_caller"]:
+                logger.info("Parameter usage: %d propagated through calls, %d call contexts "
+                            "without caller (analysis made by an older FUTAG)",
+                            self.usage_stats["propagated"], self.usage_stats["contexts_without_caller"])
             simple_functions = []
             if self.target_library["functions"]:
                 for f_iter in self.target_library["functions"]:
@@ -524,6 +529,59 @@ class BaseGenerator(ABC):
         if not (self.library_root / install_path).exists():
             sys.exit(INVALID_INSTALLPATH)
         self.install_path = self.library_root / install_path
+
+    FILE_PATH_USAGES = ("FILE_PATH_READ", "FILE_PATH_RW", "FILE_PATH_WRITE", "FILE_PATH")
+
+    @staticmethod
+    def _propagate_param_usage(functions) -> dict:
+        """Carry file path usage from callees up to their callers.
+
+        The analyzer deduces a parameter's usage only from calls inside the
+        function itself, for example ``fopen(path, "r")``. A public wrapper
+        that passes its parameter on to an internal function which opens the
+        file stays UNKNOWN. Each call context records the caller and the
+        arguments, so a caller parameter passed unchanged (DECL_REF with the
+        parameter's name) into a callee parameter with a file path usage takes
+        that usage. Repeats until nothing changes, so chains of wrappers work.
+
+        Only file path usages are carried: they decide whether the wrapper
+        writes a file, and a C_STRING or SIZE_FIELD of a callee says nothing
+        reliable about the caller.
+
+        Returns:
+            dict with ``propagated`` (parameters changed) and
+            ``contexts_without_caller`` (contexts from an analysis that did not
+            record the caller, skipped).
+        """
+        by_hash = {f.get("hash"): f for f in functions}
+        stats = {"propagated": 0, "contexts_without_caller": 0}
+        counted = False
+        changed = True
+        while changed:
+            changed = False
+            for callee in functions:
+                for ctx in callee.get("contexts") or []:
+                    caller = by_hash.get(ctx.get("caller_func_hash"))
+                    if caller is None:
+                        if not counted:
+                            stats["contexts_without_caller"] += 1
+                        continue
+                    caller_params = {p.get("param_name"): p for p in caller.get("params", [])}
+                    for arg in ctx.get("args_desc", []):
+                        if arg.get("futag_type") != "DECL_REF":
+                            continue
+                        idx = arg.get("idx", -1)
+                        if not 0 <= idx < len(callee.get("params", [])):
+                            continue
+                        usage = callee["params"][idx].get("param_usage")
+                        param = caller_params.get(arg.get("literal_value"))
+                        if (param is not None and usage in BaseGenerator.FILE_PATH_USAGES
+                                and param.get("param_usage") not in BaseGenerator.FILE_PATH_USAGES):
+                            param["param_usage"] = usage
+                            stats["propagated"] += 1
+                            changed = True
+            counted = True
+        return stats
 
     # ------------------------------------------------------------------ #
     #  Helper: check if a parameter is a file parameter                   #

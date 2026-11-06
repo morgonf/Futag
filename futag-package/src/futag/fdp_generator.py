@@ -119,6 +119,44 @@ class FuzzDataProviderGenerator(BaseGenerator):
             "buffer_size": []
         }
 
+    def _gen_input_file(self, param_name, gen_type_info) -> dict:
+        """Write fuzz bytes into a file and pass the file name.
+
+        The content comes from the provider like any other argument, so the
+        input stays deterministic and is not read twice. The name carries the
+        process id, so parallel workers in one directory do not share a file,
+        and the file is removed after the call, so no state is left for the
+        next iteration.
+        """
+        if gen_type_info["gen_type"] != GEN_CSTRING:
+            return super()._gen_input_file(param_name, gen_type_info)
+        if "<unistd.h>" not in self.state.header:
+            self.state.header += ["<unistd.h>"]
+        idx = str(self.state.file_idx - 1)
+        cur_gen_free = ["    " + x for x in self.state.gen_free]
+        gen_lines = [
+            "//GEN_INPUT_FILE\n",
+            "std::string " + param_name + "_content = provider.ConsumeRandomLengthString();\n",
+            "char " + param_name + "_path[64];\n",
+            "snprintf(" + param_name + "_path, sizeof(" + param_name + "_path), "
+            "\"futag_input_file_%ld_" + idx + "\", (long)getpid());\n",
+            "FILE * fp_" + idx + " = fopen(" + param_name + "_path, \"wb\");\n",
+            "if (fp_" + idx + " == NULL) {\n",
+        ]
+        gen_lines += cur_gen_free
+        gen_lines += [
+            "    return 0;\n",
+            "}\n",
+            "fwrite(" + param_name + "_content.data(), 1, " + param_name + "_content.size(), fp_" + idx + ");\n",
+            "fclose(fp_" + idx + ");\n",
+            gen_type_info["type_name"] + " " + param_name + " = " + param_name + "_path;\n",
+        ]
+        return {
+            "gen_lines": gen_lines,
+            "gen_free": ["remove(" + param_name + "_path);\n"],
+            "buffer_size": []
+        }
+
     def _gen_wstring(self, param_name, gen_type_info, dyn_wstring_size_idx) -> dict:
         """Declare and assign value for a wide string type."""
         ref_name = param_name

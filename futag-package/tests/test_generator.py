@@ -152,3 +152,52 @@ class TestSizeOutParameter:
     def test_plain_size_unchanged(self, generator):
         res = generator._gen_strsize("sz_len", "size_t", 1, "dyn_cstring_size")
         assert "size_t sz_len = (size_t) dyn_cstring_size[0];\n" in res["gen_lines"]
+
+
+class TestPropagateParamUsage:
+    """File path usage of an internal function reaches the public wrapper."""
+
+    @staticmethod
+    def _f(name, h, params, contexts=()):
+        return {"name": name, "hash": h, "contexts": list(contexts),
+                "params": [{"param_name": n, "param_usage": u} for n, u in params]}
+
+    @staticmethod
+    def _ctx(caller_hash, args):
+        return {"caller_func_hash": caller_hash,
+                "args_desc": [{"idx": i, "futag_type": t, "literal_value": v} for i, (t, v) in enumerate(args)]}
+
+    def _run(self, functions):
+        from futag.base_generator import BaseGenerator
+        return BaseGenerator._propagate_param_usage(functions)
+
+    def test_chain_of_wrappers(self):
+        inner = self._f("inner", "1", [("path", "FILE_PATH_READ"), ("n", "UNKNOWN")],
+                        [self._ctx("2", [("DECL_REF", "fname"), ("CONST_VAL", 0)])])
+        mid = self._f("mid", "2", [("fname", "C_STRING")],
+                      [self._ctx("3", [("DECL_REF", "name")])])
+        top = self._f("top", "3", [("name", "UNKNOWN")])
+        stats = self._run([inner, mid, top])
+        assert mid["params"][0]["param_usage"] == "FILE_PATH_READ"
+        assert top["params"][0]["param_usage"] == "FILE_PATH_READ"
+        assert stats == {"propagated": 2, "contexts_without_caller": 0}
+
+    def test_only_file_usage_is_carried(self):
+        inner = self._f("inner", "1", [("s", "C_STRING")],
+                        [self._ctx("2", [("DECL_REF", "x")])])
+        outer = self._f("outer", "2", [("x", "UNKNOWN")])
+        self._run([inner, outer])
+        assert outer["params"][0]["param_usage"] == "UNKNOWN"
+
+    def test_other_variable_or_extra_arg_is_ignored(self):
+        inner = self._f("inner", "1", [("path", "FILE_PATH")],
+                        [self._ctx("2", [("DECL_REF", "local"), ("DECL_REF", "x")])])
+        outer = self._f("outer", "2", [("x", "UNKNOWN")])
+        self._run([inner, outer])
+        assert outer["params"][0]["param_usage"] == "UNKNOWN"
+
+    def test_old_analysis_without_caller_is_counted(self):
+        inner = self._f("inner", "1", [("path", "FILE_PATH")],
+                        [{"args_desc": [{"idx": 0, "futag_type": "DECL_REF", "literal_value": "x"}]}])
+        stats = self._run([inner])
+        assert stats == {"propagated": 0, "contexts_without_caller": 1}
