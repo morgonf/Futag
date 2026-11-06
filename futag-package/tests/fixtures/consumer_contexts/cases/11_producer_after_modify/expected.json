@@ -1,0 +1,13 @@
+{
+  "source": "futag-llvm 18.1.8, FutagConsumerAnalyzer with the literal fix",
+  "order": [
+    [
+      "obj_create()",
+      "obj_modify(o, 7)",
+      "cfg_from(o)",
+      "obj_attach(o, cfg_from(o))",
+      "obj_target(o, data, size)"
+    ]
+  ],
+  "note": "The case where the old sort_callexprs was wrong: it put the nested producer cfg_from(o) before obj_modify(o, 7), so the producer read an unconfigured object. The analyzer also records cfg_from(o) twice (FutagRefVar init and modifying call of o), the generator drops the duplicate."
+}

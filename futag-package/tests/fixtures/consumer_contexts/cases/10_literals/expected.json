@@ -1,0 +1,12 @@
+{
+  "source": "futag-llvm 18.1.8, FutagConsumerAnalyzer with the literal fix",
+  "order": [
+    [
+      "obj_create()",
+      "obj_modify(o, 300)",
+      "obj_tune(o, 2.5, ',', 2147483648U, \"a\\\"b\\n\")",
+      "obj_target(o, data, size)"
+    ]
+  ],
+  "note": "Regression for literal spelling in ConsumerFinder: integers used to be assigned to std::string as one truncated byte, characters were written as chr(N), strings were not escaped. str_stmt is clang's pretty-printed form, so 0x80000000u reads 2147483648U."
+}

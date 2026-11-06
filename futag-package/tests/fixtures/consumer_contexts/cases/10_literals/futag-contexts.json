@@ -1,0 +1,94 @@
+[
+  {
+    "cfg_blocks": [
+      1
+    ],
+    "init_calls": {
+      "o": {
+        "args": [],
+        "cfg_block_ID": 1,
+        "col": 16,
+        "file": "consumer.c",
+        "line": 5,
+        "name": "obj_create",
+        "qname": "obj_create",
+        "str_stmt": "obj_create()"
+      }
+    },
+    "modifying_calls": [
+      {
+        "args": [
+          {
+            "init_type": 0,
+            "value": "o"
+          },
+          {
+            "init_type": 1,
+            "value": "300"
+          }
+        ],
+        "cfg_block_ID": 1,
+        "col": 5,
+        "file": "consumer.c",
+        "line": 6,
+        "name": "obj_modify",
+        "qname": "obj_modify",
+        "str_stmt": "obj_modify(o, 300)"
+      },
+      {
+        "args": [
+          {
+            "init_type": 0,
+            "value": "o"
+          },
+          {
+            "init_type": 1,
+            "value": "2.5"
+          },
+          {
+            "init_type": 1,
+            "value": "44"
+          },
+          {
+            "init_type": 1,
+            "value": "2147483648"
+          },
+          {
+            "init_type": 1,
+            "value": "\"a\\\"b\\n\""
+          }
+        ],
+        "cfg_block_ID": 1,
+        "col": 5,
+        "file": "consumer.c",
+        "line": 7,
+        "name": "obj_tune",
+        "qname": "obj_tune",
+        "str_stmt": "obj_tune(o, 2.5, ',', 2147483648U, \"a\\\"b\\n\")"
+      },
+      {
+        "args": [
+          {
+            "init_type": 0,
+            "value": "o"
+          },
+          {
+            "init_type": 0,
+            "value": "data"
+          },
+          {
+            "init_type": 0,
+            "value": "size"
+          }
+        ],
+        "cfg_block_ID": 1,
+        "col": 5,
+        "file": "consumer.c",
+        "line": 8,
+        "name": "obj_target",
+        "qname": "obj_target",
+        "str_stmt": "obj_target(o, data, size)"
+      }
+    ]
+  }
+]

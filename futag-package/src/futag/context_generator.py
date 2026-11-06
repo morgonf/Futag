@@ -71,6 +71,9 @@ class ContextGenerator(Generator):
 
         self.consumer_contexts = None
         self.total_context = []
+        self.ctx_vars = set()
+        self.enum_consts = None
+        self.unbound_args = 0
 
         # Load context JSON
         if not pathlib.Path(context_json_file).exists():
@@ -228,12 +231,20 @@ class ContextGenerator(Generator):
             self.state.gen_this_function = False
             return False
         arg = call["call"]["args"][param_id]
-        if arg["init_type"] == ARG_INIT_VARREF:
+        init_type = arg["init_type"]
+        if init_type == ARG_INIT_VARREF and not self._is_bound_name(arg["value"]):
+            # A reference to something the context does not define, typically
+            # a parameter of the consumer function (data, size). Emitting the
+            # name verbatim gives an undeclared identifier, so the argument
+            # is generated from the fuzz input instead.
+            init_type = ARG_INIT_UNKNOWN
+            self.unbound_args += 1
+        if init_type == ARG_INIT_VARREF:
             curr_name = arg["value"]
             self.state.param_list += [curr_name]
             param_id += 1
             self._gen_context_target_function(call, func, param_id)
-        elif arg["init_type"] == ARG_INIT_CONST:
+        elif init_type == ARG_INIT_CONST:
             self.state.param_list += [curr_name]
 
             curr_gen = {
@@ -585,6 +596,17 @@ class ContextGenerator(Generator):
             items.append({"var": "", "call": call})
 
         items = [i for i in items if i["call"].get("cfg_block_ID") in block_rank]
+
+        # A nested producer that takes the tracked variable, as in
+        # attach(o, cfg_from(o)), is recorded twice: as a FutagRefVar init
+        # call and as a modifying call of o. Both entries are the same
+        # expression (same position and callee), so the modifying copy is
+        # dropped, otherwise the wrapper would call the producer twice.
+        def position(i):
+            c = i["call"]
+            return (c.get("file"), c.get("line"), c.get("col"), c.get("name"))
+        init_positions = {position(i) for i in items if i["var"]}
+        items = [i for i in items if i["var"] or position(i) not in init_positions]
         items.sort(key=lambda i: (
             block_rank[i["call"]["cfg_block_ID"]],
             str(i["call"].get("file", "")),
@@ -644,6 +666,20 @@ class ContextGenerator(Generator):
             total_context.append(self._order_context_calls(context))
         self.total_context = total_context
         return True
+
+    def _is_bound_name(self, name) -> bool:
+        """True if a VARREF name is defined by the current context or is an
+        enum constant known to the analysis DB (consumer code such as
+        ``configure(o, MODE_SAFE)`` refers to enum constants by name)."""
+        if name in self.ctx_vars:
+            return True
+        if self.enum_consts is None:
+            self.enum_consts = {
+                v["field_name"]
+                for e in self.target_library.get("enums", [])
+                for v in e.get("enum_values", [])
+            }
+        return name in self.enum_consts
 
     def _find_context_function(self, ctx_call):
         """Resolve a consumer-context call to its definition in the analysis DB.
@@ -886,6 +922,7 @@ class ContextGenerator(Generator):
             "empty": 0,
             "rejected": 0,
         }
+        self.unbound_args = 0
         for curr_context in self.total_context:
             self.state.gen_this_function = True
             self.state.header = []
@@ -904,6 +941,7 @@ class ContextGenerator(Generator):
             # A wrapper that silently drops one call of the sequence
             # reproduces a different scenario, so an unresolved call
             # discards the whole context instead of being skipped.
+            self.ctx_vars = {item["var"] for item in curr_context if item["var"]}
             target_func = None
             missing = None
             for call in curr_context:
@@ -927,4 +965,5 @@ class ContextGenerator(Generator):
                 self.context_stats["generated"] += 1
             else:
                 self.context_stats["rejected"] += 1
-        logger.info("Context generation summary: %s", self.context_stats)
+        logger.info("Context generation summary: %s, unbound VARREF args fuzzed: %d",
+                    self.context_stats, self.unbound_args)

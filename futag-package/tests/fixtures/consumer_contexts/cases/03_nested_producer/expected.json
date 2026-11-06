@@ -1,4 +1,5 @@
 {
+  "source": "futag-llvm 18.1.8, FutagConsumerAnalyzer with the literal fix",
   "order": [
     [
       "obj_create()",
@@ -7,5 +8,5 @@
       "obj_target(o, data, size)"
     ]
   ],
-  "note": "cfg_make() is extracted into a synthetic FutagRefVar. Its column (19) is greater than that of obj_attach (5), so pure source order would put it after its consumer."
+  "note": "cfg_make() becomes a synthetic FutagRefVar with a greater column than obj_attach."
 }

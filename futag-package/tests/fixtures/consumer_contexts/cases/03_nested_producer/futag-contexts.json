@@ -4,69 +4,69 @@
       1
     ],
     "init_calls": {
-      "FutagRefVarQzX": {
-        "name": "cfg_make",
-        "qname": "cfg_make",
+      "FutagRefVarBPs": {
+        "args": [],
         "cfg_block_ID": 1,
-        "str_stmt": "cfg_make()",
+        "col": 19,
         "file": "consumer.c",
         "line": 6,
-        "col": 19,
-        "args": []
+        "name": "cfg_make",
+        "qname": "cfg_make",
+        "str_stmt": "cfg_make()"
       },
       "o": {
-        "name": "obj_create",
-        "qname": "obj_create",
+        "args": [],
         "cfg_block_ID": 1,
-        "str_stmt": "obj_create()",
+        "col": 16,
         "file": "consumer.c",
         "line": 5,
-        "col": 16,
-        "args": []
+        "name": "obj_create",
+        "qname": "obj_create",
+        "str_stmt": "obj_create()"
       }
     },
     "modifying_calls": [
       {
-        "name": "obj_attach",
-        "qname": "obj_attach",
+        "args": [
+          {
+            "init_type": 0,
+            "value": "o"
+          },
+          {
+            "init_type": 0,
+            "value": "FutagRefVarBPs"
+          }
+        ],
         "cfg_block_ID": 1,
-        "str_stmt": "obj_attach(o, cfg_make())",
+        "col": 5,
         "file": "consumer.c",
         "line": 6,
-        "col": 5,
-        "args": [
-          {
-            "init_type": 0,
-            "value": "o"
-          },
-          {
-            "init_type": 0,
-            "value": "FutagRefVarQzX"
-          }
-        ]
+        "name": "obj_attach",
+        "qname": "obj_attach",
+        "str_stmt": "obj_attach(o, cfg_make())"
       },
       {
-        "name": "obj_target",
-        "qname": "obj_target",
-        "cfg_block_ID": 1,
-        "str_stmt": "obj_target(o, data, size)",
-        "file": "consumer.c",
-        "line": 7,
-        "col": 5,
         "args": [
           {
             "init_type": 0,
             "value": "o"
           },
           {
-            "init_type": 3,
-            "value": ""
+            "init_type": 0,
+            "value": "data"
           },
           {
-            "init_type": 3,
-            "value": ""
+            "init_type": 0,
+            "value": "size"
           }
-        ]
+        ],
+        "cfg_block_ID": 1,
+        "col": 5,
+        "file": "consumer.c",
+        "line": 7,
+        "name": "obj_target",
+        "qname": "obj_target",
+        "str_stmt": "obj_target(o, data, size)"
       }
     ]
   }

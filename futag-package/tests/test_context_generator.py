@@ -5,6 +5,7 @@ See tests/fixtures/consumer_contexts/README.md for the fixture layout.
 import json
 import os
 import pathlib
+import re
 import shutil
 import sys
 
@@ -42,8 +43,11 @@ def make_generator(tmp_path):
         (lib / ".futag-consumer").mkdir()
         (lib / ".futag-build").mkdir()
         (lib / ".futag-install").mkdir()
-        shutil.copy(FIXTURES / "analysis.json",
-                    lib / ".futag-analysis" / "futag-analysis-result.json")
+        db = json.loads((FIXTURES / "analysis.json").read_text())
+        extra = FIXTURES / "cases" / case / "extra-functions.json"
+        if extra.exists():
+            db["functions"] += json.loads(extra.read_text())
+        (lib / ".futag-analysis" / "futag-analysis-result.json").write_text(json.dumps(db))
         shutil.copy(FIXTURES / "cases" / case / "futag-contexts.json",
                     lib / ".futag-consumer" / "futag-contexts.json")
         (lib / ".futag-build" / "compile_commands.json").write_text("[]")
@@ -80,11 +84,15 @@ def test_init_vars_defined_before_use(case):
 
 def test_off_path_calls_dropped():
     contexts, _ = load_case("05_branch_paths")
+    on_path = set(contexts[0]["cfg_blocks"])
+    foreign = [c for c in contexts[1]["modifying_calls"]
+               if c["name"] == "obj_modify" and c["cfg_block_ID"] not in on_path]
+    assert foreign, "fixture must have a branch call off the first path"
     ctx = dict(contexts[0])
     # Inject the other branch's call: it is not on this path and must vanish.
-    ctx["modifying_calls"] = ctx["modifying_calls"] + contexts[1]["modifying_calls"][:1]
+    ctx["modifying_calls"] = ctx["modifying_calls"] + foreign
     got = statements(ContextGenerator._order_context_calls(ctx))
-    assert "obj_modify(o, 2)" not in got
+    assert foreign[0]["str_stmt"] not in got
 
 
 def test_overload_resolved_by_arity(make_generator):
@@ -118,7 +126,11 @@ def _generated_sources(gen):
     return [p.read_text() for p in pathlib.Path(gen.tmp_output_path).rglob("*.cpp")]
 
 
-@pytest.mark.parametrize("case", ["02_interleaved_init_modify", "03_nested_producer", "04_const_and_fuzzed"])
+REAL_CASES = [c for c in CASES if load_case(c)[1].get("source") != "handwritten"]
+COMPLETE_REAL = [c for c in REAL_CASES if "known_loss" not in load_case(c)[1]]
+
+
+@pytest.mark.parametrize("case", COMPLETE_REAL)
 def test_generated_wrapper_keeps_order(make_generator, case):
     gen = make_generator(case)
     contexts, expected = load_case(case)
@@ -128,22 +140,53 @@ def test_generated_wrapper_keeps_order(make_generator, case):
     assert sum(v for k, v in stats.items() if k != "total") == stats["total"]
     assert stats["generated"] == len(contexts)
     sources = _generated_sources(gen)
-    assert len(sources) == 1
-    src = sources[0]
-    names = [s.split("(")[0] for s in expected["order"][0]]
-    positions = []
-    start = 0
-    for n in names:
-        pos = src.find(n + "(", start)
-        assert pos != -1, f"{n} missing or out of order in generated wrapper:\n{src}"
-        positions.append(pos)
-        start = pos + 1
+    assert len(sources) == len(contexts)
+    # Each wrapper must contain the calls of some expected sequence in order.
+    for src in sources:
+        ok = False
+        for seq in expected["order"]:
+            start, found = 0, True
+            for stmt in seq:
+                pos = src.find(stmt.split("(")[0] + "(", start)
+                if pos == -1:
+                    found = False
+                    break
+                start = pos + 1
+            ok = ok or found
+        assert ok, f"no expected call order in generated wrapper:\n{src}"
+
+
+@pytest.mark.parametrize("case", REAL_CASES)
+def test_generated_wrapper_is_plain_source(make_generator, case):
+    """Regression for two analyzer-output defects: numeric literals arrived as
+    one control byte, and consumer parameters (data, size) arrived as VARREF
+    to names the wrapper never declares."""
+    gen = make_generator(case)
+    gen.gen_context()
+    for src in _generated_sources(gen):
+        assert not re.search(r"[\x00-\x08\x0b-\x1f]", src), "control byte in wrapper"
+        assert not re.search(r"[(,]\s*(data|size|input)\s*[,)]", src), \
+            f"undeclared consumer parameter passed through:\n{src}"
 
 
 def test_const_kept_fuzzed_generated(make_generator):
     gen = make_generator("04_const_and_fuzzed")
     gen.gen_context()
     src = _generated_sources(gen)[0]
-    assert "= MODE_SAFE;" in src
-    # input (ARG_INIT_UNKNOWN) and data come from the fuzz buffer.
+    # The enum constant stays fixed, input and data come from the fuzz buffer.
+    assert re.search(r"obj_configure\(o ,MODE_SAFE ,str_input\d+", src), src
     assert "dyn_cstring_size" in src
+
+
+def test_literals_spelled_as_c(make_generator):
+    gen = make_generator("10_literals")
+    gen.gen_context()
+    src = _generated_sources(gen)[0]
+    for line in ["= 300;", "= 2.5;", "= 44;", "= 2147483648;", '= "a\\"b\\n";']:
+        assert line in src, f"{line!r} missing:\n{src}"
+
+
+def test_duplicate_nested_producer_dropped():
+    contexts, _ = load_case("11_producer_after_modify")
+    got = statements(ContextGenerator._order_context_calls(contexts[0]))
+    assert got.count("cfg_from(o)") == 1

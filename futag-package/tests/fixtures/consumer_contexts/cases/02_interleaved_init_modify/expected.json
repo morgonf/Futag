@@ -1,4 +1,5 @@
 {
+  "source": "futag-llvm 18.1.8, FutagConsumerAnalyzer with the literal fix",
   "order": [
     [
       "obj_create()",
@@ -6,7 +7,13 @@
       "obj_create_from(a)",
       "obj_modify(b, 2)",
       "obj_target(b, data, size)"
+    ],
+    [
+      "obj_create()",
+      "obj_modify(a, 1)",
+      "obj_create_from(a)"
     ]
   ],
-  "note": "Regression for sort_callexprs: the old code put every init call of a block before every modifying call, giving create, create_from, modify(a), modify(b)."
+  "note": "The analyzer emits one context per tracked variable (b, then a).",
+  "known_loss": "Modifying calls of a dependency variable are not collected: the context of b creates a but drops obj_modify(a, 1), so a reaches obj_create_from in a different state."
 }

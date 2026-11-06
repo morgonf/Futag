@@ -18,6 +18,8 @@
 #include "clang/Analysis/AnalysisDeclContext.h"
 #include "clang/Analysis/CFG.h"
 #include "clang/Analysis/CFGStmtMap.h"
+#include "llvm/ADT/SmallString.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <algorithm>
 #include <fstream>
@@ -25,6 +27,35 @@
 #include <queue>
 #include <utility>
 #include <vector>
+
+namespace {
+// Literal values go into generated C/C++ source verbatim, so they must be
+// spelled as C literals. Assigning an integer to std::string picks
+// operator=(char) and keeps one truncated byte, which is what happened here
+// before: 1 became "\x01" and the wrapper did not compile.
+std::string IntLiteralText(const clang::IntegerLiteral *lit) {
+    const llvm::APInt &v = lit->getValue();
+    // Signedness comes from the literal's type: 0x80000000u has the top bit
+    // set but is not negative.
+    return lit->getType()->isSignedIntegerType()
+               ? std::to_string(v.getSExtValue())
+               : std::to_string(v.getZExtValue());
+}
+
+std::string FloatLiteralText(const clang::FloatingLiteral *lit) {
+    llvm::SmallString<32> buf;
+    lit->getValue().toString(buf);
+    return std::string(buf.str());
+}
+
+std::string StringLiteralText(const clang::StringLiteral *lit) {
+    std::string out;
+    llvm::raw_string_ostream os(out);
+    lit->outputString(os); // quotes and escapes included
+    os.flush();
+    return out;
+}
+} // namespace
 using namespace clang;
 using namespace llvm;
 
@@ -79,7 +110,7 @@ futag::FutagCallExprInfo GetCallExprSimpleInfo( //
             if (const auto *charecterLiteralArg =
                     dyn_cast<CharacterLiteral>(curr_arg)) {
                 curr_init_arg.init_type = ArgConstValue;
-                curr_init_arg.value = "chr(" + std::to_string(charecterLiteralArg->getValue()) + ")";
+                curr_init_arg.value = std::to_string(charecterLiteralArg->getValue());
             }
 
             if (const auto *fixedPointLiteralArg =
@@ -92,8 +123,7 @@ futag::FutagCallExprInfo GetCallExprSimpleInfo( //
             if (const auto *floatingPointLiteralArg =
                     dyn_cast<FloatingLiteral>(curr_arg)) {
                 curr_init_arg.init_type = ArgConstValue;
-                curr_init_arg.value =
-                    floatingPointLiteralArg->getValueAsApproximateDouble();
+                curr_init_arg.value = FloatLiteralText(floatingPointLiteralArg);
             }
 
             if (const auto *imaginaryLiteralArg =
@@ -105,16 +135,13 @@ futag::FutagCallExprInfo GetCallExprSimpleInfo( //
             if (const auto *integerLiteralArg =
                     dyn_cast<IntegerLiteral>(curr_arg)) {
                 curr_init_arg.init_type = ArgConstValue;
-                curr_init_arg.value =
-                    (integerLiteralArg->getValue().isSignBitSet())
-                        ? integerLiteralArg->getValue().getSExtValue()
-                        : integerLiteralArg->getValue().getZExtValue();
+                curr_init_arg.value = IntLiteralText(integerLiteralArg);
             }
 
             if (const auto *stringLiteralArg =
                     dyn_cast<clang::StringLiteral>(curr_arg)) {
                 curr_init_arg.init_type = ArgConstValue;
-                curr_init_arg.value = "\"" + stringLiteralArg->getBytes().str()+"\"";
+                curr_init_arg.value = StringLiteralText(stringLiteralArg);
             }
         }
         if (is_decl_ref_expr) {
@@ -357,7 +384,7 @@ void SearchVarDeclInBlock(
 bool HandleLiterals(const Expr *arg, FutagInitArg &curr_init_arg) {
     if (const auto *charecterLiteralArg = dyn_cast<CharacterLiteral>(arg)) {
         curr_init_arg.init_type = ArgConstValue;
-        curr_init_arg.value = "chr(" + std::to_string(charecterLiteralArg->getValue()) + ")";
+        curr_init_arg.value = std::to_string(charecterLiteralArg->getValue());
         return true;
     }
 
@@ -369,8 +396,7 @@ bool HandleLiterals(const Expr *arg, FutagInitArg &curr_init_arg) {
 
     if (const auto *floatingPointLiteralArg = dyn_cast<FloatingLiteral>(arg)) {
         curr_init_arg.init_type = ArgConstValue;
-        curr_init_arg.value =
-            floatingPointLiteralArg->getValueAsApproximateDouble();
+        curr_init_arg.value = FloatLiteralText(floatingPointLiteralArg);
         return true;
     }
 
@@ -382,16 +408,13 @@ bool HandleLiterals(const Expr *arg, FutagInitArg &curr_init_arg) {
 
     if (const auto *integerLiteralArg = dyn_cast<IntegerLiteral>(arg)) {
         curr_init_arg.init_type = ArgConstValue;
-        curr_init_arg.value =
-            (integerLiteralArg->getValue().isSignBitSet())
-                ? integerLiteralArg->getValue().getSExtValue()
-                : integerLiteralArg->getValue().getZExtValue();
+        curr_init_arg.value = IntLiteralText(integerLiteralArg);
         return true;
     }
 
     if (const auto *stringLiteralArg = dyn_cast<clang::StringLiteral>(arg)) {
         curr_init_arg.init_type = ArgConstValue;
-        curr_init_arg.value = "\"" + stringLiteralArg->getBytes().str()+"\"";
+        curr_init_arg.value = StringLiteralText(stringLiteralArg);
     }
     return false;
 }

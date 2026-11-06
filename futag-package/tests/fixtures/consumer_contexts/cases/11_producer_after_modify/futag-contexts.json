@@ -1,0 +1,112 @@
+[
+  {
+    "cfg_blocks": [
+      1
+    ],
+    "init_calls": {
+      "FutagRefVarhmh": {
+        "args": [
+          {
+            "init_type": 0,
+            "value": "o"
+          }
+        ],
+        "cfg_block_ID": 1,
+        "col": 19,
+        "file": "consumer.c",
+        "line": 7,
+        "name": "cfg_from",
+        "qname": "cfg_from",
+        "str_stmt": "cfg_from(o)"
+      },
+      "o": {
+        "args": [],
+        "cfg_block_ID": 1,
+        "col": 16,
+        "file": "consumer.c",
+        "line": 5,
+        "name": "obj_create",
+        "qname": "obj_create",
+        "str_stmt": "obj_create()"
+      }
+    },
+    "modifying_calls": [
+      {
+        "args": [
+          {
+            "init_type": 0,
+            "value": "o"
+          },
+          {
+            "init_type": 1,
+            "value": "7"
+          }
+        ],
+        "cfg_block_ID": 1,
+        "col": 5,
+        "file": "consumer.c",
+        "line": 6,
+        "name": "obj_modify",
+        "qname": "obj_modify",
+        "str_stmt": "obj_modify(o, 7)"
+      },
+      {
+        "args": [
+          {
+            "init_type": 0,
+            "value": "o"
+          },
+          {
+            "init_type": 0,
+            "value": "FutagRefVarhmh"
+          }
+        ],
+        "cfg_block_ID": 1,
+        "col": 5,
+        "file": "consumer.c",
+        "line": 7,
+        "name": "obj_attach",
+        "qname": "obj_attach",
+        "str_stmt": "obj_attach(o, cfg_from(o))"
+      },
+      {
+        "args": [
+          {
+            "init_type": 0,
+            "value": "o"
+          },
+          {
+            "init_type": 0,
+            "value": "data"
+          },
+          {
+            "init_type": 0,
+            "value": "size"
+          }
+        ],
+        "cfg_block_ID": 1,
+        "col": 5,
+        "file": "consumer.c",
+        "line": 8,
+        "name": "obj_target",
+        "qname": "obj_target",
+        "str_stmt": "obj_target(o, data, size)"
+      },
+      {
+        "args": [
+          {
+            "init_type": 0,
+            "value": "o"
+          }
+        ],
+        "cfg_block_ID": 1,
+        "col": 19,
+        "file": "consumer.c",
+        "line": 7,
+        "name": "cfg_from",
+        "qname": "cfg_from",
+        "str_stmt": "cfg_from(o)"
+      }
+    ]
+  }
+]

@@ -1,4 +1,5 @@
 {
+  "source": "futag-llvm 18.1.8, FutagConsumerAnalyzer with the literal fix",
   "order": [
     [
       "obj_create()",
@@ -6,5 +7,5 @@
       "obj_target(o, data, size)"
     ]
   ],
-  "note": "MODE_SAFE must stay fixed, input must come from the fuzz buffer."
+  "note": "MODE_SAFE arrives as ARG_INIT_VARREF (a DeclRefExpr to an enum constant), input, data and size as VARREF to consumer parameters. The generator keeps MODE_SAFE and fuzzes the rest."
 }

@@ -45,12 +45,12 @@
             "value": "o"
           },
           {
-            "init_type": 3,
-            "value": ""
+            "init_type": 0,
+            "value": "data"
           },
           {
-            "init_type": 3,
-            "value": ""
+            "init_type": 0,
+            "value": "size"
           }
         ]
       }

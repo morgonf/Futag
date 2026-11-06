@@ -1,193 +1,88 @@
 {
   "functions": [
     {
-      "name": "obj_create",
-      "qname": "obj_create",
-      "hash": "1001",
-      "is_simple": true,
-      "func_type": 4,
-      "access_type": 3,
-      "storage_class": 0,
-      "parent_hash": "",
-      "return_type": "obj_t *",
-      "gen_return_type": [],
-      "params": [],
-      "fuzz_it": true,
-      "contexts": [],
-      "location": {
-        "file": "library.c",
-        "line": "1",
-        "directory": "/src",
-        "fullpath": "/src/library.c"
-      }
-    },
-    {
-      "name": "obj_create_from",
-      "qname": "obj_create_from",
-      "hash": "1002",
-      "is_simple": true,
-      "func_type": 4,
-      "access_type": 3,
-      "storage_class": 0,
-      "parent_hash": "",
-      "return_type": "obj_t *",
-      "gen_return_type": [],
-      "params": [
-        {
-          "param_name": "parent",
-          "param_type": "obj_t *",
-          "param_usage": "UNKNOWN",
-          "gen_list": [
-            {
-              "gen_type": 8,
-              "type_name": "obj_t *",
-              "base_type_name": "obj_t",
-              "local_qualifier": "",
-              "length": 0
-            },
-            {
-              "gen_type": 12,
-              "type_name": "obj_t",
-              "base_type_name": "obj_t",
-              "local_qualifier": "",
-              "length": 0
-            }
-          ]
-        }
-      ],
-      "fuzz_it": true,
-      "contexts": [],
-      "location": {
-        "file": "library.c",
-        "line": "1",
-        "directory": "/src",
-        "fullpath": "/src/library.c"
-      }
-    },
-    {
-      "name": "obj_modify",
-      "qname": "obj_modify",
-      "hash": "1003",
-      "is_simple": true,
+      "name": "obj_target",
+      "qname": "obj_target",
+      "hash": "1118584468",
+      "is_simple": false,
       "func_type": 4,
       "access_type": 3,
       "storage_class": 0,
       "parent_hash": "",
       "return_type": "int",
-      "gen_return_type": [],
-      "params": [
+      "gen_return_type": [
         {
-          "param_name": "o",
-          "param_type": "obj_t *",
-          "param_usage": "UNKNOWN",
-          "gen_list": [
-            {
-              "gen_type": 8,
-              "type_name": "obj_t *",
-              "base_type_name": "obj_t",
-              "local_qualifier": "",
-              "length": 0
-            },
-            {
-              "gen_type": 12,
-              "type_name": "obj_t",
-              "base_type_name": "obj_t",
-              "local_qualifier": "",
-              "length": 0
-            }
-          ]
-        },
-        {
-          "param_name": "value",
-          "param_type": "int",
-          "param_usage": "UNKNOWN",
-          "gen_list": [
-            {
-              "gen_type": 0,
-              "type_name": "int",
-              "base_type_name": "int",
-              "local_qualifier": "",
-              "length": 0
-            }
-          ]
+          "base_type_name": "",
+          "gen_type": 0,
+          "gen_type_name": "_BUILTIN",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "int"
         }
       ],
-      "fuzz_it": true,
-      "contexts": [],
-      "location": {
-        "file": "library.c",
-        "line": "1",
-        "directory": "/src",
-        "fullpath": "/src/library.c"
-      }
-    },
-    {
-      "name": "obj_configure",
-      "qname": "obj_configure",
-      "hash": "1004",
-      "is_simple": true,
-      "func_type": 4,
-      "access_type": 3,
-      "storage_class": 0,
-      "parent_hash": "",
-      "return_type": "int",
-      "gen_return_type": [],
       "params": [
         {
-          "param_name": "o",
-          "param_type": "obj_t *",
-          "param_usage": "UNKNOWN",
+          "canonical_type": "struct obj *",
           "gen_list": [
             {
-              "gen_type": 8,
-              "type_name": "obj_t *",
-              "base_type_name": "obj_t",
+              "base_type_name": "",
+              "gen_type": 9,
+              "gen_type_name": "_STRUCT",
+              "length": 0,
               "local_qualifier": "",
-              "length": 0
+              "type_name": "obj_t"
             },
             {
-              "gen_type": 12,
-              "type_name": "obj_t",
               "base_type_name": "obj_t",
+              "gen_type": 8,
+              "gen_type_name": "_POINTER",
+              "length": 0,
               "local_qualifier": "",
-              "length": 0
+              "type_name": "obj_t *"
             }
-          ]
+          ],
+          "param_name": "o",
+          "param_type": "obj_t *",
+          "param_usage": "UNKNOWN"
         },
         {
-          "param_name": "mode",
-          "param_type": "int",
-          "param_usage": "UNKNOWN",
+          "canonical_type": "const char *",
           "gen_list": [
             {
-              "gen_type": 0,
-              "type_name": "int",
-              "base_type_name": "int",
-              "local_qualifier": "",
-              "length": 0
-            }
-          ]
-        },
-        {
-          "param_name": "input",
-          "param_type": "const char *",
-          "param_usage": "UNKNOWN",
-          "gen_list": [
-            {
-              "gen_type": 1,
-              "type_name": "const char *",
               "base_type_name": "char *",
+              "gen_type": 1,
+              "gen_type_name": "_CSTRING",
+              "length": 0,
               "local_qualifier": "const",
-              "length": 0
+              "type_name": "const char *"
             }
-          ]
+          ],
+          "param_name": "data",
+          "param_type": "const char *",
+          "param_usage": "UNKNOWN"
+        },
+        {
+          "canonical_type": "unsigned long",
+          "gen_list": [
+            {
+              "base_type_name": "",
+              "gen_type": 0,
+              "gen_type_name": "_BUILTIN",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "size_t"
+            }
+          ],
+          "param_name": "size",
+          "param_type": "size_t",
+          "param_usage": "UNKNOWN"
         }
       ],
       "fuzz_it": true,
       "contexts": [],
       "location": {
         "file": "library.c",
-        "line": "1",
+        "line": "23",
         "directory": "/src",
         "fullpath": "/src/library.c"
       }
@@ -195,20 +90,429 @@
     {
       "name": "cfg_make",
       "qname": "cfg_make",
-      "hash": "1005",
+      "hash": "1187068977",
       "is_simple": true,
       "func_type": 4,
       "access_type": 3,
       "storage_class": 0,
       "parent_hash": "",
       "return_type": "cfg_t *",
-      "gen_return_type": [],
+      "gen_return_type": [
+        {
+          "base_type_name": "",
+          "gen_type": 9,
+          "gen_type_name": "_STRUCT",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "cfg_t"
+        },
+        {
+          "base_type_name": "cfg_t",
+          "gen_type": 8,
+          "gen_type_name": "_POINTER",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "cfg_t *"
+        }
+      ],
       "params": [],
+      "fuzz_it": false,
+      "contexts": [
+        {
+          "args_desc": [],
+          "target_func_hash": "1187068977",
+          "target_func_loc": "library.c:35",
+          "target_func_name": "cfg_make"
+        }
+      ],
+      "location": {
+        "file": "library.c",
+        "line": "21",
+        "directory": "/src",
+        "fullpath": "/src/library.c"
+      }
+    },
+    {
+      "name": "cfg_from",
+      "qname": "cfg_from",
+      "hash": "1547048325",
+      "is_simple": false,
+      "func_type": 4,
+      "access_type": 3,
+      "storage_class": 0,
+      "parent_hash": "",
+      "return_type": "cfg_t *",
+      "gen_return_type": [
+        {
+          "base_type_name": "",
+          "gen_type": 9,
+          "gen_type_name": "_STRUCT",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "cfg_t"
+        },
+        {
+          "base_type_name": "cfg_t",
+          "gen_type": 8,
+          "gen_type_name": "_POINTER",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "cfg_t *"
+        }
+      ],
+      "params": [
+        {
+          "canonical_type": "struct obj *",
+          "gen_list": [
+            {
+              "base_type_name": "",
+              "gen_type": 9,
+              "gen_type_name": "_STRUCT",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "obj_t"
+            },
+            {
+              "base_type_name": "obj_t",
+              "gen_type": 8,
+              "gen_type_name": "_POINTER",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "obj_t *"
+            }
+          ],
+          "param_name": "o",
+          "param_type": "obj_t *",
+          "param_usage": "UNKNOWN"
+        }
+      ],
       "fuzz_it": true,
       "contexts": [],
       "location": {
         "file": "library.c",
-        "line": "1",
+        "line": "34",
+        "directory": "/src",
+        "fullpath": "/src/library.c"
+      }
+    },
+    {
+      "name": "obj_tune",
+      "qname": "obj_tune",
+      "hash": "257225141",
+      "is_simple": false,
+      "func_type": 4,
+      "access_type": 3,
+      "storage_class": 0,
+      "parent_hash": "",
+      "return_type": "int",
+      "gen_return_type": [
+        {
+          "base_type_name": "",
+          "gen_type": 0,
+          "gen_type_name": "_BUILTIN",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "int"
+        }
+      ],
+      "params": [
+        {
+          "canonical_type": "struct obj *",
+          "gen_list": [
+            {
+              "base_type_name": "",
+              "gen_type": 9,
+              "gen_type_name": "_STRUCT",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "obj_t"
+            },
+            {
+              "base_type_name": "obj_t",
+              "gen_type": 8,
+              "gen_type_name": "_POINTER",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "obj_t *"
+            }
+          ],
+          "param_name": "o",
+          "param_type": "obj_t *",
+          "param_usage": "UNKNOWN"
+        },
+        {
+          "canonical_type": "double",
+          "gen_list": [
+            {
+              "base_type_name": "",
+              "gen_type": 0,
+              "gen_type_name": "_BUILTIN",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "double"
+            }
+          ],
+          "param_name": "ratio",
+          "param_type": "double",
+          "param_usage": "UNKNOWN"
+        },
+        {
+          "canonical_type": "char",
+          "gen_list": [
+            {
+              "base_type_name": "",
+              "gen_type": 0,
+              "gen_type_name": "_BUILTIN",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "char"
+            }
+          ],
+          "param_name": "sep",
+          "param_type": "char",
+          "param_usage": "UNKNOWN"
+        },
+        {
+          "canonical_type": "unsigned int",
+          "gen_list": [
+            {
+              "base_type_name": "",
+              "gen_type": 0,
+              "gen_type_name": "_BUILTIN",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "unsigned int"
+            }
+          ],
+          "param_name": "mask",
+          "param_type": "unsigned int",
+          "param_usage": "UNKNOWN"
+        },
+        {
+          "canonical_type": "const char *",
+          "gen_list": [
+            {
+              "base_type_name": "char *",
+              "gen_type": 1,
+              "gen_type_name": "_CSTRING",
+              "length": 0,
+              "local_qualifier": "const",
+              "type_name": "const char *"
+            }
+          ],
+          "param_name": "label",
+          "param_type": "const char *",
+          "param_usage": "C_STRING"
+        }
+      ],
+      "fuzz_it": true,
+      "contexts": [],
+      "location": {
+        "file": "library.c",
+        "line": "29",
+        "directory": "/src",
+        "fullpath": "/src/library.c"
+      }
+    },
+    {
+      "name": "obj_modify",
+      "qname": "obj_modify",
+      "hash": "289173169",
+      "is_simple": false,
+      "func_type": 4,
+      "access_type": 3,
+      "storage_class": 0,
+      "parent_hash": "",
+      "return_type": "int",
+      "gen_return_type": [
+        {
+          "base_type_name": "",
+          "gen_type": 0,
+          "gen_type_name": "_BUILTIN",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "int"
+        }
+      ],
+      "params": [
+        {
+          "canonical_type": "struct obj *",
+          "gen_list": [
+            {
+              "base_type_name": "",
+              "gen_type": 9,
+              "gen_type_name": "_STRUCT",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "obj_t"
+            },
+            {
+              "base_type_name": "obj_t",
+              "gen_type": 8,
+              "gen_type_name": "_POINTER",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "obj_t *"
+            }
+          ],
+          "param_name": "o",
+          "param_type": "obj_t *",
+          "param_usage": "UNKNOWN"
+        },
+        {
+          "canonical_type": "int",
+          "gen_list": [
+            {
+              "base_type_name": "",
+              "gen_type": 0,
+              "gen_type_name": "_BUILTIN",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "int"
+            }
+          ],
+          "param_name": "value",
+          "param_type": "int",
+          "param_usage": "UNKNOWN"
+        }
+      ],
+      "fuzz_it": true,
+      "contexts": [],
+      "location": {
+        "file": "library.c",
+        "line": "14",
+        "directory": "/src",
+        "fullpath": "/src/library.c"
+      }
+    },
+    {
+      "name": "obj_create",
+      "qname": "obj_create",
+      "hash": "3042695493",
+      "is_simple": true,
+      "func_type": 4,
+      "access_type": 3,
+      "storage_class": 0,
+      "parent_hash": "",
+      "return_type": "obj_t *",
+      "gen_return_type": [
+        {
+          "base_type_name": "",
+          "gen_type": 9,
+          "gen_type_name": "_STRUCT",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "obj_t"
+        },
+        {
+          "base_type_name": "obj_t",
+          "gen_type": 8,
+          "gen_type_name": "_POINTER",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "obj_t *"
+        }
+      ],
+      "params": [],
+      "fuzz_it": false,
+      "contexts": [
+        {
+          "args_desc": [],
+          "target_func_hash": "3042695493",
+          "target_func_loc": "library.c:10",
+          "target_func_name": "obj_create"
+        }
+      ],
+      "location": {
+        "file": "library.c",
+        "line": "8",
+        "directory": "/src",
+        "fullpath": "/src/library.c"
+      }
+    },
+    {
+      "name": "obj_configure",
+      "qname": "obj_configure",
+      "hash": "3221933771",
+      "is_simple": false,
+      "func_type": 4,
+      "access_type": 3,
+      "storage_class": 0,
+      "parent_hash": "",
+      "return_type": "int",
+      "gen_return_type": [
+        {
+          "base_type_name": "",
+          "gen_type": 0,
+          "gen_type_name": "_BUILTIN",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "int"
+        }
+      ],
+      "params": [
+        {
+          "canonical_type": "struct obj *",
+          "gen_list": [
+            {
+              "base_type_name": "",
+              "gen_type": 9,
+              "gen_type_name": "_STRUCT",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "obj_t"
+            },
+            {
+              "base_type_name": "obj_t",
+              "gen_type": 8,
+              "gen_type_name": "_POINTER",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "obj_t *"
+            }
+          ],
+          "param_name": "o",
+          "param_type": "obj_t *",
+          "param_usage": "UNKNOWN"
+        },
+        {
+          "canonical_type": "int",
+          "gen_list": [
+            {
+              "base_type_name": "",
+              "gen_type": 0,
+              "gen_type_name": "_BUILTIN",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "int"
+            }
+          ],
+          "param_name": "mode",
+          "param_type": "int",
+          "param_usage": "UNKNOWN"
+        },
+        {
+          "canonical_type": "const char *",
+          "gen_list": [
+            {
+              "base_type_name": "char *",
+              "gen_type": 1,
+              "gen_type_name": "_CSTRING",
+              "length": 0,
+              "local_qualifier": "const",
+              "type_name": "const char *"
+            }
+          ],
+          "param_name": "input",
+          "param_type": "const char *",
+          "param_usage": "C_STRING"
+        }
+      ],
+      "fuzz_it": true,
+      "contexts": [],
+      "location": {
+        "file": "library.c",
+        "line": "15",
         "directory": "/src",
         "fullpath": "/src/library.c"
       }
@@ -216,127 +520,141 @@
     {
       "name": "obj_attach",
       "qname": "obj_attach",
-      "hash": "1006",
-      "is_simple": true,
+      "hash": "4058077897",
+      "is_simple": false,
       "func_type": 4,
       "access_type": 3,
       "storage_class": 0,
       "parent_hash": "",
       "return_type": "int",
-      "gen_return_type": [],
+      "gen_return_type": [
+        {
+          "base_type_name": "",
+          "gen_type": 0,
+          "gen_type_name": "_BUILTIN",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "int"
+        }
+      ],
       "params": [
         {
-          "param_name": "o",
-          "param_type": "obj_t *",
-          "param_usage": "UNKNOWN",
+          "canonical_type": "struct obj *",
           "gen_list": [
             {
-              "gen_type": 8,
-              "type_name": "obj_t *",
-              "base_type_name": "obj_t",
+              "base_type_name": "",
+              "gen_type": 9,
+              "gen_type_name": "_STRUCT",
+              "length": 0,
               "local_qualifier": "",
-              "length": 0
+              "type_name": "obj_t"
             },
             {
-              "gen_type": 12,
-              "type_name": "obj_t",
               "base_type_name": "obj_t",
+              "gen_type": 8,
+              "gen_type_name": "_POINTER",
+              "length": 0,
               "local_qualifier": "",
-              "length": 0
+              "type_name": "obj_t *"
             }
-          ]
+          ],
+          "param_name": "o",
+          "param_type": "obj_t *",
+          "param_usage": "UNKNOWN"
         },
         {
-          "param_name": "c",
-          "param_type": "cfg_t *",
-          "param_usage": "UNKNOWN",
+          "canonical_type": "struct cfg *",
           "gen_list": [
             {
-              "gen_type": 8,
-              "type_name": "cfg_t *",
-              "base_type_name": "cfg_t",
+              "base_type_name": "",
+              "gen_type": 9,
+              "gen_type_name": "_STRUCT",
+              "length": 0,
               "local_qualifier": "",
-              "length": 0
+              "type_name": "cfg_t"
+            },
+            {
+              "base_type_name": "cfg_t",
+              "gen_type": 8,
+              "gen_type_name": "_POINTER",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "cfg_t *"
             }
-          ]
+          ],
+          "param_name": "c",
+          "param_type": "cfg_t *",
+          "param_usage": "UNKNOWN"
         }
       ],
       "fuzz_it": true,
       "contexts": [],
       "location": {
         "file": "library.c",
-        "line": "1",
+        "line": "22",
         "directory": "/src",
         "fullpath": "/src/library.c"
       }
     },
     {
-      "name": "obj_target",
-      "qname": "obj_target",
-      "hash": "1007",
-      "is_simple": true,
+      "name": "obj_create_from",
+      "qname": "obj_create_from",
+      "hash": "4058439576",
+      "is_simple": false,
       "func_type": 4,
       "access_type": 3,
       "storage_class": 0,
       "parent_hash": "",
-      "return_type": "int",
-      "gen_return_type": [],
+      "return_type": "obj_t *",
+      "gen_return_type": [
+        {
+          "base_type_name": "",
+          "gen_type": 9,
+          "gen_type_name": "_STRUCT",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "obj_t"
+        },
+        {
+          "base_type_name": "obj_t",
+          "gen_type": 8,
+          "gen_type_name": "_POINTER",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "obj_t *"
+        }
+      ],
       "params": [
         {
-          "param_name": "o",
-          "param_type": "obj_t *",
-          "param_usage": "UNKNOWN",
+          "canonical_type": "struct obj *",
           "gen_list": [
             {
-              "gen_type": 8,
-              "type_name": "obj_t *",
-              "base_type_name": "obj_t",
+              "base_type_name": "",
+              "gen_type": 9,
+              "gen_type_name": "_STRUCT",
+              "length": 0,
               "local_qualifier": "",
-              "length": 0
+              "type_name": "obj_t"
             },
             {
-              "gen_type": 12,
-              "type_name": "obj_t",
               "base_type_name": "obj_t",
+              "gen_type": 8,
+              "gen_type_name": "_POINTER",
+              "length": 0,
               "local_qualifier": "",
-              "length": 0
+              "type_name": "obj_t *"
             }
-          ]
-        },
-        {
-          "param_name": "data",
-          "param_type": "const char *",
-          "param_usage": "UNKNOWN",
-          "gen_list": [
-            {
-              "gen_type": 1,
-              "type_name": "const char *",
-              "base_type_name": "char *",
-              "local_qualifier": "const",
-              "length": 0
-            }
-          ]
-        },
-        {
-          "param_name": "size",
-          "param_type": "size_t",
-          "param_usage": "SIZE_FIELD",
-          "gen_list": [
-            {
-              "gen_type": 0,
-              "type_name": "size_t",
-              "base_type_name": "size_t",
-              "local_qualifier": "",
-              "length": 0
-            }
-          ]
+          ],
+          "param_name": "parent",
+          "param_type": "obj_t *",
+          "param_usage": "UNKNOWN"
         }
       ],
       "fuzz_it": true,
       "contexts": [],
       "location": {
         "file": "library.c",
-        "line": "1",
+        "line": "9",
         "directory": "/src",
         "fullpath": "/src/library.c"
       }
@@ -344,190 +662,196 @@
     {
       "name": "obj_destroy",
       "qname": "obj_destroy",
-      "hash": "1008",
-      "is_simple": true,
+      "hash": "4175738188",
+      "is_simple": false,
       "func_type": 4,
       "access_type": 3,
       "storage_class": 0,
       "parent_hash": "",
       "return_type": "void",
-      "gen_return_type": [],
+      "gen_return_type": [
+        {
+          "base_type_name": "",
+          "gen_type": 6,
+          "gen_type_name": "_VOIDP",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "void"
+        }
+      ],
       "params": [
         {
-          "param_name": "o",
-          "param_type": "obj_t *",
-          "param_usage": "UNKNOWN",
+          "canonical_type": "struct obj *",
           "gen_list": [
             {
-              "gen_type": 8,
-              "type_name": "obj_t *",
-              "base_type_name": "obj_t",
+              "base_type_name": "",
+              "gen_type": 9,
+              "gen_type_name": "_STRUCT",
+              "length": 0,
               "local_qualifier": "",
-              "length": 0
+              "type_name": "obj_t"
             },
             {
-              "gen_type": 12,
-              "type_name": "obj_t",
               "base_type_name": "obj_t",
+              "gen_type": 8,
+              "gen_type_name": "_POINTER",
+              "length": 0,
               "local_qualifier": "",
-              "length": 0
+              "type_name": "obj_t *"
             }
-          ]
+          ],
+          "param_name": "o",
+          "param_type": "obj_t *",
+          "param_usage": "UNKNOWN"
         }
       ],
       "fuzz_it": true,
       "contexts": [],
       "location": {
         "file": "library.c",
-        "line": "1",
-        "directory": "/src",
-        "fullpath": "/src/library.c"
-      }
-    },
-    {
-      "name": "process",
-      "qname": "process",
-      "hash": "2001",
-      "is_simple": true,
-      "func_type": 4,
-      "access_type": 3,
-      "storage_class": 0,
-      "parent_hash": "",
-      "return_type": "int",
-      "gen_return_type": [],
-      "params": [
-        {
-          "param_name": "o",
-          "param_type": "obj_t *",
-          "param_usage": "UNKNOWN",
-          "gen_list": [
-            {
-              "gen_type": 8,
-              "type_name": "obj_t *",
-              "base_type_name": "obj_t",
-              "local_qualifier": "",
-              "length": 0
-            },
-            {
-              "gen_type": 12,
-              "type_name": "obj_t",
-              "base_type_name": "obj_t",
-              "local_qualifier": "",
-              "length": 0
-            }
-          ]
-        },
-        {
-          "param_name": "a",
-          "param_type": "int",
-          "param_usage": "UNKNOWN",
-          "gen_list": [
-            {
-              "gen_type": 0,
-              "type_name": "int",
-              "base_type_name": "int",
-              "local_qualifier": "",
-              "length": 0
-            }
-          ]
-        }
-      ],
-      "fuzz_it": true,
-      "contexts": [],
-      "location": {
-        "file": "library.c",
-        "line": "1",
-        "directory": "/src",
-        "fullpath": "/src/library.c"
-      }
-    },
-    {
-      "name": "process",
-      "qname": "process",
-      "hash": "2002",
-      "is_simple": true,
-      "func_type": 4,
-      "access_type": 3,
-      "storage_class": 0,
-      "parent_hash": "",
-      "return_type": "int",
-      "gen_return_type": [],
-      "params": [
-        {
-          "param_name": "o",
-          "param_type": "obj_t *",
-          "param_usage": "UNKNOWN",
-          "gen_list": [
-            {
-              "gen_type": 8,
-              "type_name": "obj_t *",
-              "base_type_name": "obj_t",
-              "local_qualifier": "",
-              "length": 0
-            },
-            {
-              "gen_type": 12,
-              "type_name": "obj_t",
-              "base_type_name": "obj_t",
-              "local_qualifier": "",
-              "length": 0
-            }
-          ]
-        },
-        {
-          "param_name": "a",
-          "param_type": "int",
-          "param_usage": "UNKNOWN",
-          "gen_list": [
-            {
-              "gen_type": 0,
-              "type_name": "int",
-              "base_type_name": "int",
-              "local_qualifier": "",
-              "length": 0
-            }
-          ]
-        },
-        {
-          "param_name": "b",
-          "param_type": "int",
-          "param_usage": "UNKNOWN",
-          "gen_list": [
-            {
-              "gen_type": 0,
-              "type_name": "int",
-              "base_type_name": "int",
-              "local_qualifier": "",
-              "length": 0
-            }
-          ]
-        }
-      ],
-      "fuzz_it": true,
-      "contexts": [],
-      "location": {
-        "file": "library.c",
-        "line": "1",
+        "line": "28",
         "directory": "/src",
         "fullpath": "/src/library.c"
       }
     }
   ],
-  "enums": [],
-  "records": [],
-  "typedefs": [],
+  "enums": [
+    {
+      "access_type": 3,
+      "enum_values": [
+        {
+          "field_name": "MODE_FAST",
+          "field_value": 0
+        },
+        {
+          "field_name": "MODE_SAFE",
+          "field_value": 1
+        }
+      ],
+      "hash": "2554588284",
+      "name": "mode",
+      "qname": "mode"
+    }
+  ],
+  "records": [
+    {
+      "access_type": 3,
+      "fields": [
+        {
+          "field_name": "value",
+          "field_type": "int",
+          "gen_list": [
+            {
+              "base_type_name": "",
+              "gen_type": 0,
+              "gen_type_name": "_BUILTIN",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "int"
+            }
+          ],
+          "is_simple": true
+        },
+        {
+          "field_name": "mode",
+          "field_type": "int",
+          "gen_list": [
+            {
+              "base_type_name": "",
+              "gen_type": 0,
+              "gen_type_name": "_BUILTIN",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "int"
+            }
+          ],
+          "is_simple": true
+        },
+        {
+          "field_name": "parent",
+          "field_type": "struct obj *",
+          "gen_list": [],
+          "is_simple": false
+        },
+        {
+          "field_name": "cfg",
+          "field_type": "struct cfg *",
+          "gen_list": [],
+          "is_simple": false
+        },
+        {
+          "field_name": "buf",
+          "field_type": "char[64]",
+          "gen_list": [],
+          "is_simple": false
+        }
+      ],
+      "hash": "241827936",
+      "is_simple": false,
+      "name": "obj",
+      "qname": "obj",
+      "type": 2
+    },
+    {
+      "access_type": 3,
+      "fields": [
+        {
+          "field_name": "level",
+          "field_type": "int",
+          "gen_list": [
+            {
+              "base_type_name": "",
+              "gen_type": 0,
+              "gen_type_name": "_BUILTIN",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "int"
+            }
+          ],
+          "is_simple": true
+        }
+      ],
+      "hash": "1828354427",
+      "is_simple": true,
+      "name": "cfg",
+      "qname": "cfg",
+      "type": 2
+    }
+  ],
+  "typedefs": [
+    {
+      "access_type": 3,
+      "canonical_type": "struct obj",
+      "is_builtin": false,
+      "name": "obj_t",
+      "qname": "obj_t",
+      "type_source": "struct obj",
+      "type_source_hash": "241827936",
+      "underlying_type": "struct obj"
+    },
+    {
+      "access_type": 3,
+      "canonical_type": "struct cfg",
+      "is_builtin": false,
+      "name": "cfg_t",
+      "qname": "cfg_t",
+      "type_source": "struct cfg",
+      "type_source_hash": "1828354427",
+      "underlying_type": "struct cfg"
+    }
+  ],
   "compiled_files": [
     {
       "filename": "/src/library.c",
       "headers": [
+        "<stdlib.h>",
+        "<string.h>",
         "\"library.h\""
       ],
       "include_paths": [
         "/src"
       ],
-      "compiler_opts": [
-        "-I/src"
-      ]
+      "compiler_opts": "-cc1 -triple x86_64-unknown-linux-gnu -analyze -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name library.c -analyzer-checker=core -analyzer-checker=apiModeling -analyzer-checker=unix -analyzer-checker=deadcode -analyzer-checker=security.insecureAPI.UncheckedReturn -analyzer-checker=security.insecureAPI.getpw -analyzer-checker=security.insecureAPI.gets -analyzer-checker=security.insecureAPI.mktemp -analyzer-checker=security.insecureAPI.mkstemp -analyzer-checker=security.insecureAPI.vfork -analyzer-checker=nullability.NullPassedToNonnull -analyzer-checker=nullability.NullReturnedFromNonnull -analyzer-output plist -w -setup-static-analyzer -analyzer-config-compatibility-mode=true -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=all -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu x86-64 -tune-cpu generic -debugger-tuning=gdb -fdebug-compilation-dir=/src -fcoverage-compilation-dir=/src -resource-dir /home/user/claude/Futag/futag-llvm/lib/clang/18 -internal-isystem /home/user/claude/Futag/futag-llvm/lib/clang/18/include -internal-isystem /usr/local/include -internal-externc-isystem /include -internal-externc-isystem /usr/include -ferror-limit 19 -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -analyzer-checker futag.FutagAnalyzer -analyzer-disable-checker security -analyzer-disable-checker unix -analyzer-disable-checker deadcode -analyzer-disable-checker nullability -analyzer-disable-checker cplusplus -analyzer-output=html -analyzer-config futag.FutagAnalyzer:report_dir=/src/.futag-analysis -analyzer-config silence-checkers=core -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o /tmp/futag-report -x c library.c"
     }
   ]
 }

@@ -1,0 +1,130 @@
+[
+  {
+    "name": "process",
+    "qname": "process",
+    "hash": "2001",
+    "is_simple": true,
+    "func_type": 4,
+    "access_type": 3,
+    "storage_class": 0,
+    "parent_hash": "",
+    "return_type": "int",
+    "gen_return_type": [],
+    "params": [
+      {
+        "param_name": "o",
+        "param_type": "obj_t *",
+        "param_usage": "UNKNOWN",
+        "gen_list": [
+          {
+            "gen_type": 8,
+            "type_name": "obj_t *",
+            "base_type_name": "obj_t",
+            "local_qualifier": "",
+            "length": 0
+          },
+          {
+            "gen_type": 12,
+            "type_name": "obj_t",
+            "base_type_name": "obj_t",
+            "local_qualifier": "",
+            "length": 0
+          }
+        ]
+      },
+      {
+        "param_name": "a",
+        "param_type": "int",
+        "param_usage": "UNKNOWN",
+        "gen_list": [
+          {
+            "gen_type": 0,
+            "type_name": "int",
+            "base_type_name": "int",
+            "local_qualifier": "",
+            "length": 0
+          }
+        ]
+      }
+    ],
+    "fuzz_it": true,
+    "contexts": [],
+    "location": {
+      "file": "library.c",
+      "line": "1",
+      "directory": "/src",
+      "fullpath": "/src/library.c"
+    }
+  },
+  {
+    "name": "process",
+    "qname": "process",
+    "hash": "2002",
+    "is_simple": true,
+    "func_type": 4,
+    "access_type": 3,
+    "storage_class": 0,
+    "parent_hash": "",
+    "return_type": "int",
+    "gen_return_type": [],
+    "params": [
+      {
+        "param_name": "o",
+        "param_type": "obj_t *",
+        "param_usage": "UNKNOWN",
+        "gen_list": [
+          {
+            "gen_type": 8,
+            "type_name": "obj_t *",
+            "base_type_name": "obj_t",
+            "local_qualifier": "",
+            "length": 0
+          },
+          {
+            "gen_type": 12,
+            "type_name": "obj_t",
+            "base_type_name": "obj_t",
+            "local_qualifier": "",
+            "length": 0
+          }
+        ]
+      },
+      {
+        "param_name": "a",
+        "param_type": "int",
+        "param_usage": "UNKNOWN",
+        "gen_list": [
+          {
+            "gen_type": 0,
+            "type_name": "int",
+            "base_type_name": "int",
+            "local_qualifier": "",
+            "length": 0
+          }
+        ]
+      },
+      {
+        "param_name": "b",
+        "param_type": "int",
+        "param_usage": "UNKNOWN",
+        "gen_list": [
+          {
+            "gen_type": 0,
+            "type_name": "int",
+            "base_type_name": "int",
+            "local_qualifier": "",
+            "length": 0
+          }
+        ]
+      }
+    ],
+    "fuzz_it": true,
+    "contexts": [],
+    "location": {
+      "file": "library.c",
+      "line": "1",
+      "directory": "/src",
+      "fullpath": "/src/library.c"
+    }
+  }
+]

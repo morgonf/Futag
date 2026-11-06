@@ -5,54 +5,54 @@
     ],
     "init_calls": {
       "o": {
-        "name": "obj_create",
-        "qname": "obj_create",
+        "args": [],
         "cfg_block_ID": 1,
-        "str_stmt": "obj_create()",
+        "col": 16,
         "file": "consumer.c",
         "line": 5,
-        "col": 16,
-        "args": []
+        "name": "obj_create",
+        "qname": "obj_create",
+        "str_stmt": "obj_create()"
       }
     },
     "modifying_calls": [
       {
-        "name": "obj_destroy",
-        "qname": "obj_destroy",
-        "cfg_block_ID": 1,
-        "str_stmt": "obj_destroy(o)",
-        "file": "consumer.c",
-        "line": 7,
-        "col": 5,
         "args": [
           {
             "init_type": 0,
             "value": "o"
+          },
+          {
+            "init_type": 0,
+            "value": "data"
+          },
+          {
+            "init_type": 0,
+            "value": "size"
           }
-        ]
-      },
-      {
-        "name": "obj_target",
-        "qname": "obj_target",
+        ],
         "cfg_block_ID": 1,
-        "str_stmt": "obj_target(o, data, size)",
+        "col": 5,
         "file": "consumer.c",
         "line": 6,
-        "col": 5,
+        "name": "obj_target",
+        "qname": "obj_target",
+        "str_stmt": "obj_target(o, data, size)"
+      },
+      {
         "args": [
           {
             "init_type": 0,
             "value": "o"
-          },
-          {
-            "init_type": 3,
-            "value": ""
-          },
-          {
-            "init_type": 3,
-            "value": ""
           }
-        ]
+        ],
+        "cfg_block_ID": 1,
+        "col": 5,
+        "file": "consumer.c",
+        "line": 7,
+        "name": "obj_destroy",
+        "qname": "obj_destroy",
+        "str_stmt": "obj_destroy(o)"
       }
     ]
   }

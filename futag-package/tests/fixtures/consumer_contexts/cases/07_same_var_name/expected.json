@@ -1,4 +1,5 @@
 {
+  "source": "futag-llvm 18.1.8, FutagConsumerAnalyzer with the literal fix",
   "order": [
     [
       "obj_create()",
@@ -7,5 +8,5 @@
       "obj_target(h, data, size)"
     ]
   ],
-  "known_loss": "init_calls is a JSON object keyed by variable name, so two variables named h in different scopes collapse into one entry and one obj_create() is lost."
+  "known_loss": "Variables are matched by name: the analyzer keeps the first h, so obj_target is applied to the object from the other scope and the second obj_create() is lost."
 }

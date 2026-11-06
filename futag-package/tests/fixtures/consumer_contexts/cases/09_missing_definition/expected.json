@@ -1,4 +1,5 @@
 {
+  "source": "handwritten",
   "order": [
     [
       "obj_create()",
@@ -6,7 +7,7 @@
       "obj_target(o, data, size)"
     ]
   ],
-  "note": "obj_reset is not in the analysis DB (stale or partial analysis). The context must be skipped and counted, not generated with the call silently dropped.",
+  "note": "Stale or partial analysis DB: obj_reset is not in it. With a consistent DB the analyzer drops non-library calls itself, so this case only arises from a DB mismatch. The context must be skipped and counted.",
   "stats": {
     "total": 1,
     "generated": 0,

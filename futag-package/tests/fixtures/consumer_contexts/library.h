@@ -13,8 +13,10 @@ int obj_modify(obj_t *o, int value);
 int obj_configure(obj_t *o, int mode, const char *input);
 cfg_t *cfg_make(void);
 int obj_attach(obj_t *o, cfg_t *c);
+cfg_t *cfg_from(obj_t *o);
 int obj_target(obj_t *o, const char *data, size_t size);
 void obj_destroy(obj_t *o);
+int obj_tune(obj_t *o, double ratio, char sep, unsigned mask, const char *label);
 
 /* C++ overloads (case 08): same name, different arity. */
 #ifdef __cplusplus

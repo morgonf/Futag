@@ -5,25 +5,18 @@
     ],
     "init_calls": {
       "h": {
+        "args": [],
+        "cfg_block_ID": 1,
+        "col": 20,
+        "file": "consumer.c",
+        "line": 6,
         "name": "obj_create",
         "qname": "obj_create",
-        "cfg_block_ID": 1,
-        "str_stmt": "obj_create()",
-        "file": "consumer.c",
-        "line": 10,
-        "col": 20,
-        "args": []
+        "str_stmt": "obj_create()"
       }
     },
     "modifying_calls": [
       {
-        "name": "obj_modify",
-        "qname": "obj_modify",
-        "cfg_block_ID": 1,
-        "str_stmt": "obj_modify(h, 1)",
-        "file": "consumer.c",
-        "line": 7,
-        "col": 9,
         "args": [
           {
             "init_type": 0,
@@ -33,30 +26,37 @@
             "init_type": 1,
             "value": "1"
           }
-        ]
+        ],
+        "cfg_block_ID": 1,
+        "col": 9,
+        "file": "consumer.c",
+        "line": 7,
+        "name": "obj_modify",
+        "qname": "obj_modify",
+        "str_stmt": "obj_modify(h, 1)"
       },
       {
-        "name": "obj_target",
-        "qname": "obj_target",
-        "cfg_block_ID": 1,
-        "str_stmt": "obj_target(h, data, size)",
-        "file": "consumer.c",
-        "line": 11,
-        "col": 9,
         "args": [
           {
             "init_type": 0,
             "value": "h"
           },
           {
-            "init_type": 3,
-            "value": ""
+            "init_type": 0,
+            "value": "data"
           },
           {
-            "init_type": 3,
-            "value": ""
+            "init_type": 0,
+            "value": "size"
           }
-        ]
+        ],
+        "cfg_block_ID": 1,
+        "col": 9,
+        "file": "consumer.c",
+        "line": 11,
+        "name": "obj_target",
+        "qname": "obj_target",
+        "str_stmt": "obj_target(h, data, size)"
       }
     ]
   }

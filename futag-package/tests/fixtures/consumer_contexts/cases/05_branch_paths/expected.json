@@ -1,15 +1,16 @@
 {
+  "source": "futag-llvm 18.1.8, FutagConsumerAnalyzer with the literal fix",
   "order": [
-    [
-      "obj_create()",
-      "obj_modify(o, 1)",
-      "obj_target(o, data, size)"
-    ],
     [
       "obj_create()",
       "obj_modify(o, 2)",
       "obj_target(o, data, size)"
+    ],
+    [
+      "obj_create()",
+      "obj_modify(o, 1)",
+      "obj_target(o, data, size)"
     ]
   ],
-  "note": "Two CFG paths give two contexts (B4->B3->B1 and B4->B2->B1). The guard `if (flag)` itself is not recorded, this loss is known and tracked separately."
+  "note": "Two CFG paths give two contexts. The guard `if (flag)` itself is not recorded."
 }
