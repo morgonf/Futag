@@ -60,3 +60,26 @@ class TestParseLocation:
         from futag.preprocessor import _parse_location
         result = _parse_location("/src/C:/test.c:10")
         assert result["line"] == "10"
+
+
+class TestBuilderDefaultFlags:
+    """The library must carry libFuzzer coverage counters by default.
+
+    Otherwise libFuzzer sees only the wrapper and gets no feedback from the
+    library code it is meant to explore.
+    """
+
+    def test_default_flags_instrument_library(self, tmp_path):
+        from futag.preprocessor import Builder
+        from futag.toolchain import ToolchainConfig
+        b = Builder(tmp_path.as_posix(), toolchain=ToolchainConfig.for_generation_only(),
+                    log_to_console=False)
+        assert "fuzzer-no-link" in b.flags
+        assert "-fsanitize=address" in b.flags
+
+    def test_explicit_flags_are_kept(self, tmp_path):
+        from futag.preprocessor import Builder
+        from futag.toolchain import ToolchainConfig
+        b = Builder(tmp_path.as_posix(), flags="-O1", toolchain=ToolchainConfig.for_generation_only(),
+                    log_to_console=False)
+        assert b.flags == "-O1"

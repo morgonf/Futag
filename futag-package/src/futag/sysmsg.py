@@ -22,6 +22,10 @@ INSTALL_PATH = ".futag-install"
 ANALYSIS_PATH = ".futag-analysis"
 DEBUG_FLAGS = "-g -O0"
 COMPILER_FLAGS = "-fsanitize=address"
+# Library code built for fuzzing: ASan plus the coverage counters that
+# libFuzzer reads, without its main(). Without the counters the fuzzer gets
+# feedback only from the wrapper and not from the library.
+LIBRARY_COMPILER_FLAGS = "-fsanitize=address,fuzzer-no-link"
 COMPILER_COVERAGE_FLAGS = "-fprofile-instr-generate -fcoverage-mapping "
 FUZZ_COMPILER_FLAGS = "-fsanitize=address,fuzzer"
 FUZZ_DRIVER_PATH = "futag-fuzz-drivers"

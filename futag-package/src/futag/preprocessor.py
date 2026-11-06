@@ -196,7 +196,7 @@ class Builder(_BaseBuilder):
 
         Args:
             library_root (str): path to the library root.
-            flags (str, optional): flags for compiling.. Defaults to COMPILER_FLAGS.
+            flags (str, optional): flags for compiling.. Defaults to LIBRARY_COMPILER_FLAGS.
             clean (bool, optional): Option for deleting futag folders if they are exist, for example futag-build, futag-install, futag-analysis. Defaults to False.
             build_path (str, optional): path to the build directory. Be careful, this directory will be deleted and create again if clean set to True. Defaults to BUILD_PATH.
             install_path (str, optional): path for saving report of analysis. Be careful, this directory will be deleted and create again if clean set to True. Defaults to INSTALL_PATH.
@@ -230,7 +230,7 @@ class Builder(_BaseBuilder):
         (self.library_root / analysis_path).mkdir(parents=True, exist_ok=True)
         self.analysis_path = self.library_root / analysis_path
         if not flags:
-            flags = DEBUG_FLAGS + " " + COMPILER_FLAGS + " " + COMPILER_COVERAGE_FLAGS
+            flags = DEBUG_FLAGS + " " + LIBRARY_COMPILER_FLAGS + " " + COMPILER_COVERAGE_FLAGS
         self.flags = flags
         self.intercept = intercept
 
