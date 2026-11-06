@@ -1,0 +1,73 @@
+[
+  {
+    "cfg_blocks": [
+      1
+    ],
+    "init_calls": {
+      "FutagRefVarQzX": {
+        "name": "cfg_make",
+        "qname": "cfg_make",
+        "cfg_block_ID": 1,
+        "str_stmt": "cfg_make()",
+        "file": "consumer.c",
+        "line": 6,
+        "col": 19,
+        "args": []
+      },
+      "o": {
+        "name": "obj_create",
+        "qname": "obj_create",
+        "cfg_block_ID": 1,
+        "str_stmt": "obj_create()",
+        "file": "consumer.c",
+        "line": 5,
+        "col": 16,
+        "args": []
+      }
+    },
+    "modifying_calls": [
+      {
+        "name": "obj_attach",
+        "qname": "obj_attach",
+        "cfg_block_ID": 1,
+        "str_stmt": "obj_attach(o, cfg_make())",
+        "file": "consumer.c",
+        "line": 6,
+        "col": 5,
+        "args": [
+          {
+            "init_type": 0,
+            "value": "o"
+          },
+          {
+            "init_type": 0,
+            "value": "FutagRefVarQzX"
+          }
+        ]
+      },
+      {
+        "name": "obj_target",
+        "qname": "obj_target",
+        "cfg_block_ID": 1,
+        "str_stmt": "obj_target(o, data, size)",
+        "file": "consumer.c",
+        "line": 7,
+        "col": 5,
+        "args": [
+          {
+            "init_type": 0,
+            "value": "o"
+          },
+          {
+            "init_type": 3,
+            "value": ""
+          },
+          {
+            "init_type": 3,
+            "value": ""
+          }
+        ]
+      }
+    ]
+  }
+]

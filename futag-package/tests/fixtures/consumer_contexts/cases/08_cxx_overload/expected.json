@@ -1,0 +1,13 @@
+{
+  "order": [
+    [
+      "obj_create()",
+      "process(o, 1, 2)",
+      "obj_target(o, data, size)"
+    ]
+  ],
+  "note": "Consumer JSON carries no signature (qname == name), so the overload is picked by arity. Expected definition hash is in expected.json.",
+  "resolve": {
+    "process(o, 1, 2)": "2002"
+  }
+}

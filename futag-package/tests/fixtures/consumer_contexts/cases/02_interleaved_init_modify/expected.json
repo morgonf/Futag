@@ -1,0 +1,12 @@
+{
+  "order": [
+    [
+      "obj_create()",
+      "obj_modify(a, 1)",
+      "obj_create_from(a)",
+      "obj_modify(b, 2)",
+      "obj_target(b, data, size)"
+    ]
+  ],
+  "note": "Regression for sort_callexprs: the old code put every init call of a block before every modifying call, giving create, create_from, modify(a), modify(b)."
+}

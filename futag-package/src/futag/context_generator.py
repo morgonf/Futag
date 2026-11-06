@@ -545,11 +545,91 @@ class ContextGenerator(Generator):
     #  Sort call expressions into CFG block order                         #
     # ------------------------------------------------------------------ #
 
+    @staticmethod
+    def _order_context_calls(context) -> list:
+        """Linearize one consumer context into an executable call sequence.
+
+        Calls are ordered by CFG path order (``cfg_blocks``), then by source
+        position (file, line, col) inside a block, so init and modifying
+        calls keep their original interleaving.  A stable dependency pass
+        then moves every call after the init calls whose variables it
+        references via ARG_INIT_VARREF.  Source position alone is not
+        enough: for ``x = f(g())`` the analyzer extracts ``g()`` into a
+        synthetic FutagRefVar whose column is greater than the column of
+        ``f``, and the JSON writer stores ``init_calls`` as a map, so key
+        order carries no information.
+
+        Calls whose block is not on the path are dropped, as before.
+
+        Args:
+            context (dict): one entry of futag-contexts.json.
+
+        Returns:
+            list: [{"var": str, "call": dict}, ...] in execution order.
+        """
+        cfg_blocks = context.get("cfg_blocks", [])
+        block_rank = {}
+        for idx, block in enumerate(cfg_blocks):
+            block_rank.setdefault(block, idx)
+
+        def as_int(value):
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                return 0
+
+        items = []
+        for var, call in context.get("init_calls", {}).items():
+            items.append({"var": var, "call": call})
+        for call in context.get("modifying_calls", []):
+            items.append({"var": "", "call": call})
+
+        items = [i for i in items if i["call"].get("cfg_block_ID") in block_rank]
+        items.sort(key=lambda i: (
+            block_rank[i["call"]["cfg_block_ID"]],
+            str(i["call"].get("file", "")),
+            as_int(i["call"].get("line")),
+            as_int(i["call"].get("col")),
+            0 if i["var"] else 1,
+        ))
+
+        defined = {i["var"] for i in items if i["var"]}
+
+        def deps(item):
+            return {
+                arg.get("value") for arg in item["call"].get("args", [])
+                if arg.get("init_type") == ARG_INIT_VARREF
+                and arg.get("value") in defined
+                and arg.get("value") != item["var"]
+            }
+
+        ordered = []
+        emitted = set()
+        pending = list(items)
+        while pending:
+            pick = None
+            for pos, item in enumerate(pending):
+                if deps(item) <= emitted:
+                    pick = pos
+                    break
+            if pick is None:
+                # Cyclic dependency: keep source order and report it.
+                pick = 0
+                logger.warning(
+                    "Cyclic variable dependency in consumer context at %s",
+                    pending[0]["call"].get("str_stmt", pending[0]["call"].get("name")))
+            item = pending.pop(pick)
+            ordered.append(item)
+            if item["var"]:
+                emitted.add(item["var"])
+        return ordered
+
     def sort_callexprs(self):
-        """Sort all found call expressions by CFG block order.
+        """Linearize all consumer contexts into call sequences.
 
         Processes consumer_contexts to produce total_context: a list of
-        ordered call sequences ready for fuzz target generation.
+        ordered call sequences ready for fuzz target generation.  See
+        _order_context_calls for the ordering rules.
 
         Returns:
             bool: False if consumer_contexts is empty/None.
@@ -560,45 +640,41 @@ class ContextGenerator(Generator):
         total_context = []
         for context in self.consumer_contexts:
             logger.info("====== Context: ")
-            logger.info("cfg_blocks: %s", context["cfg_blocks"])
-            cfg_blocks = context["cfg_blocks"]
-            init_calls = context["init_calls"]
-            modifying_calls = context["modifying_calls"]
-            res_dict = {}
-            for block in cfg_blocks:
-                call_expr_list = []
-                tmp_list = []
-                for var, call in init_calls.items():
-                    if call["cfg_block_ID"] == block:
-                        tmp_list.append({
-                            "var": var,
-                            "call": call
-                        })
-
-                tmp_list = sorted(tmp_list, key=lambda x: (x["call"]["file"], x["call"]["line"]))
-                for i in tmp_list:
-                    call_expr_list.append(i)
-
-                tmp_list = []
-                for call in modifying_calls:
-                    if call["cfg_block_ID"] == block:
-                        call_expr_list.append({
-                            "var": "",
-                            "call": call
-                        })
-
-                tmp_list = sorted(tmp_list, key=lambda x: (x["call"]["file"], x["call"]["line"]))
-
-                for i in tmp_list:
-                    call_expr_list.append(i)
-                res_dict[block] = call_expr_list
-
-            context = []
-            for block in cfg_blocks:
-                for call in res_dict[block]:
-                    context.append(call)
-            total_context.append(context)
+            logger.info("cfg_blocks: %s", context.get("cfg_blocks"))
+            total_context.append(self._order_context_calls(context))
         self.total_context = total_context
+        return True
+
+    def _find_context_function(self, ctx_call):
+        """Resolve a consumer-context call to its definition in the analysis DB.
+
+        The consumer JSON carries only the plain name (its "qname" field is
+        filled with the name as well), so overloads are told apart by arity.
+        A candidate needs at least as many recorded arguments as declared
+        parameters, otherwise argument lookup would run past the end.
+
+        Args:
+            ctx_call (dict): the "call" part of a context entry.
+
+        Returns:
+            dict | None: matching function, or None if nothing fits.
+        """
+        name = ctx_call.get("name")
+        n_args = len(ctx_call.get("args", []))
+        by_name = [f for f in self.target_library["functions"] if f["name"] == name]
+        exact = [f for f in by_name if len(f["params"]) == n_args]
+        candidates = exact or [f for f in by_name if len(f["params"]) <= n_args]
+        if not candidates:
+            return None
+        qname = ctx_call.get("qname")
+        by_qname = [f for f in candidates if f.get("qname") == qname]
+        if by_qname:
+            candidates = by_qname
+        if len(candidates) > 1:
+            logger.warning(
+                "Ambiguous definition for %s with %d args: %d candidates, using %s",
+                name, n_args, len(candidates), candidates[0].get("qname"))
+        return candidates[0]
 
     # ------------------------------------------------------------------ #
     #  Generate a context wrapper (writes the fuzz target file)           #
@@ -785,6 +861,7 @@ class ContextGenerator(Generator):
         else:
             f.write(AFLPLUSPLUS_SUFFIX)
         f.close()
+        return True
 
     # ------------------------------------------------------------------ #
     #  Public API: generate context-aware fuzz targets                    #
@@ -801,6 +878,14 @@ class ContextGenerator(Generator):
         if not self.total_context:
             sys.exit("-- [Futag] empty context, exited!")
 
+        # Every context ends in exactly one bucket; the sum equals "total".
+        self.context_stats = {
+            "total": len(self.total_context),
+            "generated": 0,
+            "missing_definition": 0,
+            "empty": 0,
+            "rejected": 0,
+        }
         for curr_context in self.total_context:
             self.state.gen_this_function = True
             self.state.header = []
@@ -816,14 +901,30 @@ class ContextGenerator(Generator):
             self.state.param_list = []
             self.state.curr_func_log = ""
 
+            # A wrapper that silently drops one call of the sequence
+            # reproduces a different scenario, so an unresolved call
+            # discards the whole context instead of being skipped.
+            target_func = None
+            missing = None
             for call in curr_context:
-                # search function definition in JSON db
-                found_function = False
-                for func in self.target_library["functions"]:
-                    if func["name"] != call["call"]["name"]:
-                        continue
-                    found_function = True
-                    self._gen_context_target_function(call, func, 0)
+                func = self._find_context_function(call["call"])
+                if func is None:
+                    missing = call["call"].get("name")
                     break
+                target_func = func
+                self._gen_context_target_function(call, func, 0)
 
-            self._gen_context_wrapper(func)
+            if missing is not None:
+                logger.warning(
+                    "Context skipped: no definition for %s (%d args) in analysis result",
+                    missing, len(call["call"].get("args", [])))
+                self.context_stats["missing_definition"] += 1
+                continue
+            if target_func is None:
+                self.context_stats["empty"] += 1
+                continue
+            if self._gen_context_wrapper(target_func):
+                self.context_stats["generated"] += 1
+            else:
+                self.context_stats["rejected"] += 1
+        logger.info("Context generation summary: %s", self.context_stats)

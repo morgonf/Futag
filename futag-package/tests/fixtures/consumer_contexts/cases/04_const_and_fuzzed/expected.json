@@ -1,0 +1,10 @@
+{
+  "order": [
+    [
+      "obj_create()",
+      "obj_configure(o, MODE_SAFE, input)",
+      "obj_target(o, data, size)"
+    ]
+  ],
+  "note": "MODE_SAFE must stay fixed, input must come from the fuzz buffer."
+}

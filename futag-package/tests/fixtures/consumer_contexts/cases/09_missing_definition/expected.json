@@ -1,0 +1,17 @@
+{
+  "order": [
+    [
+      "obj_create()",
+      "obj_reset(o)",
+      "obj_target(o, data, size)"
+    ]
+  ],
+  "note": "obj_reset is not in the analysis DB (stale or partial analysis). The context must be skipped and counted, not generated with the call silently dropped.",
+  "stats": {
+    "total": 1,
+    "generated": 0,
+    "missing_definition": 1,
+    "empty": 0,
+    "rejected": 0
+  }
+}

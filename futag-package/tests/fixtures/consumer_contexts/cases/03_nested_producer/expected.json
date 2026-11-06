@@ -1,0 +1,11 @@
+{
+  "order": [
+    [
+      "obj_create()",
+      "cfg_make()",
+      "obj_attach(o, cfg_make())",
+      "obj_target(o, data, size)"
+    ]
+  ],
+  "note": "cfg_make() is extracted into a synthetic FutagRefVar. Its column (19) is greater than that of obj_attach (5), so pure source order would put it after its consumer."
+}

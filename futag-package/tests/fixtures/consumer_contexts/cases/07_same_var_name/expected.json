@@ -1,0 +1,11 @@
+{
+  "order": [
+    [
+      "obj_create()",
+      "obj_modify(h, 1)",
+      "obj_create()",
+      "obj_target(h, data, size)"
+    ]
+  ],
+  "known_loss": "init_calls is a JSON object keyed by variable name, so two variables named h in different scopes collapse into one entry and one obj_create() is lost."
+}

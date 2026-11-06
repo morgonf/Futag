@@ -1,0 +1,8 @@
+{
+  "order": [
+    [
+      "obj_create()",
+      "obj_target(o, data, size)"
+    ]
+  ]
+}
