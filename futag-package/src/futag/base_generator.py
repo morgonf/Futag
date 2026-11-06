@@ -109,6 +109,25 @@ class BaseGenerator(ABC):
         """
         ...
 
+    @staticmethod
+    def _size_param_lines(param_name: str, param_type: str, value_expr: str) -> list:
+        """Declare a size parameter bound to ``value_expr``.
+
+        For an out-parameter such as ``size_t *dst_len`` the size lives in a
+        local variable and its address is passed. Casting the size itself to
+        a pointer, as all generators used to do, makes the wrapper crash on
+        the first call (SEGV at a small address) or not compile at all.
+        """
+        t = param_type.strip()
+        if t.endswith("*"):
+            base = t[:-1].strip()
+            return [
+                "//GEN_SIZE\n",
+                base + " " + param_name + "_v = (" + base + ") " + value_expr + ";\n",
+                t + " " + param_name + " = &" + param_name + "_v;\n",
+            ]
+        return ["//GEN_SIZE\n", t + " " + param_name + " = (" + t + ") " + value_expr + ";\n"]
+
     @abstractmethod
     def _gen_strsize(self, param_name: str, param_type: str, dyn_size_idx: int, array_name: str) -> dict:
         """Generate code for a parameter that holds the size of a preceding string.
@@ -573,6 +592,18 @@ class BaseGenerator(ABC):
                 "location": ""
             }
 
+    # Extensions of files that are #included into a translation unit but are
+    # implementation, not interface: unity builds pull .inl/.c pieces into one
+    # .c file (civetweb includes md5.inl, handle_form.inl, ...). Copying those
+    # includes into a wrapper redefines the library's code or fails to find
+    # the file, so they are never emitted.
+    IMPLEMENTATION_INCLUDE_EXT = (".c", ".cc", ".cpp", ".cxx", ".c++", ".inl", ".inc")
+
+    @classmethod
+    def _is_implementation_include(cls, header: str) -> bool:
+        name = header.strip()[1:-1] if len(header.strip()) > 2 else header
+        return name.lower().endswith(cls.IMPLEMENTATION_INCLUDE_EXT)
+
     def _gen_header(self, target_function_name):
         """ Generate header for the target function
 
@@ -610,6 +641,14 @@ class BaseGenerator(ABC):
                     included_headers.remove(h)
                 if h in self.state.header:
                     self.state.header.remove(h)
+
+        dropped = [h for h in included_headers + list(self.state.header or [])
+                   if self._is_implementation_include(h)]
+        if dropped:
+            logger.debug("Not including implementation files: %s", ", ".join(sorted(set(dropped))))
+        included_headers = [h for h in included_headers if not self._is_implementation_include(h)]
+        if self.state.header:
+            self.state.header = [h for h in self.state.header if not self._is_implementation_include(h)]
 
         include_lines = []
         for i in defaults:
@@ -651,7 +690,7 @@ class BaseGenerator(ABC):
                         if not header[1:-1] in defaults:
                             included_headers.append(header)
                     break
-        return included_headers
+        return [h for h in included_headers if not self._is_implementation_include(h)]
 
     def _add_header(self, function_headers: list) -> None:
         """Add headers to the current state if not already present.

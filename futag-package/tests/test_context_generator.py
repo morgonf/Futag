@@ -190,3 +190,13 @@ def test_duplicate_nested_producer_dropped():
     contexts, _ = load_case("11_producer_after_modify")
     got = statements(ContextGenerator._order_context_calls(contexts[0]))
     assert got.count("cfg_from(o)") == 1
+
+
+def test_analysis_db_keeps_macro_prefixed_definitions():
+    """Regression: a definition starting with an export macro (LIB_API int f())
+    has its begin location inside the macro expansion; the analyzer used to
+    skip it, which dropped every public function of civetweb.c."""
+    db = json.loads((FIXTURES / "analysis.json").read_text())
+    funcs = {f["name"]: f for f in db["functions"]}
+    assert "obj_count" in funcs
+    assert funcs["obj_count"]["storage_class"] == 0

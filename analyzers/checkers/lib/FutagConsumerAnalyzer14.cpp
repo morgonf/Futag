@@ -467,8 +467,11 @@ void FutagConsumerAnalyzer::AnalyzeVisitedFunctionDecl(
     if (Mgr.getSourceManager().isInSystemHeader(func->getBeginLoc())) {
         return;
     }
-    FullSourceLoc func_begin_loc =
-        Mgr.getASTContext().getFullLoc(func->getBeginLoc());
+    // Use the expansion location: when the declaration starts with an export
+    // macro (LIB_API int f(...)), the begin location is inside the macro
+    // expansion, has no file entry, and the function used to be skipped.
+    FullSourceLoc func_begin_loc = Mgr.getASTContext().getFullLoc(
+        Mgr.getSourceManager().getExpansionLoc(func->getBeginLoc()));
 
     auto fe = func_begin_loc.getFileEntry();
     if (!fe)

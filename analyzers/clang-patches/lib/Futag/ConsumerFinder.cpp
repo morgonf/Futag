@@ -76,7 +76,8 @@ futag::FutagCallExprInfo GetCallExprSimpleInfo( //
 {
 
     FullSourceLoc full_loc =
-        Mgr.getASTContext().getFullLoc(call_expr->getBeginLoc());
+        Mgr.getASTContext().getFullLoc(
+            Mgr.getSourceManager().getExpansionLoc(call_expr->getBeginLoc()));
     futag::FutagCodeLoc code_loc;
     code_loc.line = full_loc.getSpellingLineNumber();
     code_loc.col = full_loc.getSpellingColumnNumber();
@@ -189,7 +190,8 @@ futag::FutagCallExprInfo GetCallExprInfo(              //
 {
 
     FullSourceLoc full_loc =
-        Mgr.getASTContext().getFullLoc(call_expr->getBeginLoc());
+        Mgr.getASTContext().getFullLoc(
+            Mgr.getSourceManager().getExpansionLoc(call_expr->getBeginLoc()));
     futag::FutagCodeLoc code_loc;
     code_loc.line = full_loc.getSpellingLineNumber();
     code_loc.col = full_loc.getSpellingColumnNumber();

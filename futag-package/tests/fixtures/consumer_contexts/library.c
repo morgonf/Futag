@@ -36,3 +36,7 @@ cfg_t *cfg_from(obj_t *o) {
     if (c && o) c->level = o->value;
     return c;
 }
+LIB_API int
+obj_count(const obj_t *o) {
+    return o ? o->value : 0;
+}

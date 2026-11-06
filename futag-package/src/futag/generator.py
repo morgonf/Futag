@@ -85,10 +85,7 @@ class Generator(BaseGenerator):
     def _gen_strsize(self, param_name, param_type, dyn_size_idx, array_name) -> dict:
         """Generate a string-size parameter."""
         return {
-            "gen_lines": [
-                "//GEN_SIZE\n",
-                param_type + " " + param_name + " = (" + param_type + ") " + array_name + "[" + str(dyn_size_idx - 1) + "];\n",
-            ],
+            "gen_lines": self._size_param_lines(param_name, param_type, array_name + "[" + str(dyn_size_idx - 1) + "]"),
             "gen_free": [],
             "buffer_size": []
         }

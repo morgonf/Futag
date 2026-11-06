@@ -49,3 +49,26 @@ class TestFDPGenCstring:
         result = fdp_generator._gen_cstring("s", {"type_name": "const char *", "local_qualifier": ""}, 1)
         assert any("ConsumeRandomLengthString" in line for line in result["gen_lines"])
         assert result["gen_free"] == []
+
+
+class TestFdpWritableString:
+    """Output buffers (char *dst, unsigned char *dst) must not be initialized
+    from std::string::c_str(), which is const and does not compile."""
+
+    def _gen(self, fdp_generator, type_name):
+        info = {"type_name": type_name, "base_type_name": type_name, "local_qualifier": "", "gen_type": 1, "length": 0}
+        return "".join(fdp_generator._gen_cstring("str_dst", info, 1)["gen_lines"])
+
+    def test_mutable_char_uses_buffer(self, fdp_generator):
+        code = self._gen(fdp_generator, "char *")
+        assert "std::vector<char> str_dst_buf(" in code
+        assert "str_dst = reinterpret_cast<char *>(str_dst_buf.data());" in code
+        assert ".c_str()" not in code
+
+    def test_unsigned_char_cast(self, fdp_generator):
+        code = self._gen(fdp_generator, "unsigned char *")
+        assert "reinterpret_cast<unsigned char *>(str_dst_buf.data())" in code
+
+    def test_const_char_points_into_string(self, fdp_generator):
+        code = self._gen(fdp_generator, "const char *")
+        assert "reinterpret_cast<const char *>(str_dst_fdp.c_str())" in code

@@ -196,6 +196,69 @@
       }
     },
     {
+      "name": "obj_count",
+      "qname": "obj_count",
+      "hash": "1872076705",
+      "is_simple": false,
+      "func_type": 4,
+      "access_type": 3,
+      "storage_class": 0,
+      "parent_hash": "",
+      "return_type": "int",
+      "gen_return_type": [
+        {
+          "base_type_name": "",
+          "gen_type": 0,
+          "gen_type_name": "_BUILTIN",
+          "length": 0,
+          "local_qualifier": "",
+          "type_name": "int"
+        }
+      ],
+      "params": [
+        {
+          "canonical_type": "const struct obj *",
+          "gen_list": [
+            {
+              "base_type_name": "",
+              "gen_type": 9,
+              "gen_type_name": "_STRUCT",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "obj_t"
+            },
+            {
+              "base_type_name": "obj_t",
+              "gen_type": 7,
+              "gen_type_name": "_QUALIFIER",
+              "length": 0,
+              "local_qualifier": "const",
+              "type_name": "const obj_t"
+            },
+            {
+              "base_type_name": "const obj_t",
+              "gen_type": 8,
+              "gen_type_name": "_POINTER",
+              "length": 0,
+              "local_qualifier": "",
+              "type_name": "const obj_t *"
+            }
+          ],
+          "param_name": "o",
+          "param_type": "const obj_t *",
+          "param_usage": "UNKNOWN"
+        }
+      ],
+      "fuzz_it": true,
+      "contexts": [],
+      "location": {
+        "file": "library.c",
+        "line": "39",
+        "directory": "/src",
+        "fullpath": "/src/library.c"
+      }
+    },
+    {
       "name": "obj_tune",
       "qname": "obj_tune",
       "hash": "257225141",

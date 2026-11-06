@@ -2,6 +2,9 @@
  * Each case under cases/ is a tiny consumer of this API. */
 #include <stddef.h>
 
+/* Export macro in front of the declaration, as in most real libraries. */
+#define LIB_API __attribute__((visibility("default")))
+
 typedef struct obj obj_t;
 typedef struct cfg cfg_t;
 
@@ -16,6 +19,7 @@ int obj_attach(obj_t *o, cfg_t *c);
 cfg_t *cfg_from(obj_t *o);
 int obj_target(obj_t *o, const char *data, size_t size);
 void obj_destroy(obj_t *o);
+LIB_API int obj_count(const obj_t *o);
 int obj_tune(obj_t *o, double ratio, char sep, unsigned mask, const char *label);
 
 /* C++ overloads (case 08): same name, different arity. */

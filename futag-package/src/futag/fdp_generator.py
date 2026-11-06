@@ -87,24 +87,31 @@ class FuzzDataProviderGenerator(BaseGenerator):
 
     def _gen_strsize(self, param_name, param_type, dyn_size_idx, array_name) -> dict:
         """Generate a string-size parameter using last consumed string length."""
-        self.last_string_name
         return {
-            "gen_lines": [
-                "//GEN_SIZE\n",
-                param_type + " " + param_name +
-                " = static_cast<" + param_type + " >(" + self.last_string_name + ".length());\n",
-            ],
+            "gen_lines": self._size_param_lines(param_name, param_type, self.last_string_name + ".length()"),
             "gen_free": [],
             "buffer_size": []
         }
 
     def _gen_cstring(self, param_name, gen_type_info, dyn_cstring_size_idx) -> dict:
         """Declare and assign value for a C string type."""
+        t = gen_type_info["type_name"]
         gen_lines = [
             "//GEN_CSTRING\n",
             "std::string  " + param_name + "_fdp = provider.ConsumeRandomLengthString();\n",
-            gen_type_info["type_name"] + " " + param_name + " = " + param_name + "_fdp.c_str();\n",
         ]
+        if t.replace(" ", "").startswith("const") or "const*" in t.replace(" ", ""):
+            # Read-only string: point into the std::string. The cast covers
+            # const unsigned char * and friends, which c_str() does not convert to.
+            gen_lines.append(t + " " + param_name + " = reinterpret_cast<" + t + ">(" + param_name + "_fdp.c_str());\n")
+        else:
+            # Writable buffer (an output parameter such as char *dst): c_str()
+            # is const, so copy into a mutable, zero-terminated buffer.
+            gen_lines += [
+                "std::vector<char> " + param_name + "_buf(" + param_name + "_fdp.begin(), " + param_name + "_fdp.end());\n",
+                param_name + "_buf.push_back('\\0');\n",
+                t + " " + param_name + " = reinterpret_cast<" + t + ">(" + param_name + "_buf.data());\n",
+            ]
         self.last_string_name = param_name + "_fdp"
         return {
             "gen_lines": gen_lines,

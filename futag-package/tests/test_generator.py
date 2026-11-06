@@ -119,3 +119,36 @@ class TestToolchainIntegration:
         """Generation-only: no toolchain, library_root is first arg."""
         gen = Generator(tmp_library_root)
         assert gen.toolchain.clang is None
+
+
+class TestImplementationIncludes:
+    """Unity builds include implementation files (.inl, .c) into a .c file;
+    those must not be copied into generated wrappers."""
+
+    def test_classification(self, generator):
+        for h in ['"md5.inl"', '"part.c"', '<impl.inc>', '"x.CPP"']:
+            assert generator._is_implementation_include(h), h
+        for h in ['"civetweb.h"', '<stdio.h>', '<vector>', '"detail.hpp"']:
+            assert not generator._is_implementation_include(h), h
+
+    def test_gen_header_drops_inl(self, generator):
+        generator.target_library["compiled_files"][0]["headers"] = ['"lib.h"', '"md5.inl"']
+        fullpath = generator.target_library["compiled_files"][0]["filename"]
+        lines = generator._gen_header(fullpath)
+        assert '#include "lib.h"\n' in lines
+        assert not any("md5.inl" in l for l in lines)
+
+
+class TestSizeOutParameter:
+    """A size_t * after a buffer (mg_base64_decode(src, len, dst, size_t *dst_len))
+    must point to a variable, not be the size cast to a pointer."""
+
+    def test_pointer_size_gets_address(self, generator):
+        res = generator._gen_strsize("sz_dst_len", "size_t *", 2, "dyn_cstring_size")
+        code = "".join(res["gen_lines"])
+        assert "size_t sz_dst_len_v = (size_t) dyn_cstring_size[1];" in code
+        assert "size_t * sz_dst_len = &sz_dst_len_v;" in code
+
+    def test_plain_size_unchanged(self, generator):
+        res = generator._gen_strsize("sz_len", "size_t", 1, "dyn_cstring_size")
+        assert "size_t sz_len = (size_t) dyn_cstring_size[0];\n" in res["gen_lines"]
