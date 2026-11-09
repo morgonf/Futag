@@ -201,3 +201,57 @@ class TestPropagateParamUsage:
                         [{"args_desc": [{"idx": 0, "futag_type": "DECL_REF", "literal_value": "x"}]}])
         stats = self._run([inner])
         assert stats == {"propagated": 0, "contexts_without_caller": 1}
+
+
+class TestCompileCommandsIndex:
+    """compile_commands.json is parsed once, not on every lookup."""
+
+    from futag.base_generator import BaseGenerator
+
+    def _write(self, path, entries):
+        import json
+        path.write_text(json.dumps(entries))
+
+    def test_lookup_and_single_parse(self, tmp_path, monkeypatch):
+        import json
+        from types import SimpleNamespace
+        cc = tmp_path / "compile_commands.json"
+        self._write(cc, [
+            {"file": "/src/a.c", "command": "cc -c a.c", "directory": "/b"},
+            {"file": "/src/b.cpp", "command": "c++ -c b.cpp", "directory": "/b"},
+            {"file": "/src/a.c", "command": "second", "directory": "/b"},
+        ])
+        gen = SimpleNamespace(build_path=tmp_path)
+        loads = []
+        real_load = json.load
+        monkeypatch.setattr(json, "load", lambda f: loads.append(1) or real_load(f))
+        get = lambda p: self.BaseGenerator._get_compile_command(gen, p)
+        gen._compile_commands_index = lambda: self.BaseGenerator._compile_commands_index(gen)
+        a = get("/src//a.c")
+        assert a == {"compiler": "CC", "command": "cc -c a.c", "file": "/src/a.c", "location": "/b"}
+        assert get("/src/b.cpp")["compiler"] == "CXX"
+        assert get("/src/none.c") == {"compiler": "CC", "command": "", "file": "/src/none.c", "location": ""}
+        assert len(loads) == 1
+
+    def test_no_compile_commands(self, tmp_path):
+        from types import SimpleNamespace
+        gen = SimpleNamespace(build_path=tmp_path)
+        gen._compile_commands_index = lambda: self.BaseGenerator._compile_commands_index(gen)
+        assert self.BaseGenerator._get_compile_command(gen, "/x/y.cc")["command"] == ""
+
+
+class TestPreprocessorFlags:
+    """Macros of the library's compile command reach the wrapper."""
+
+    def test_extracts_defines_in_order(self):
+        from futag.base_generator import BaseGenerator
+        cmd = ('clang -DHAVE_CONFIG_H -D NAME=1 -I/x -O3 -UNDEBUG '
+               '-DMSG="a b" -include cfg.h -fPIC -c f.c -o f.o')
+        assert BaseGenerator._preprocessor_flags(cmd) == [
+            "-DHAVE_CONFIG_H", "-D", "NAME=1", "-UNDEBUG", "-DMSG=a b",
+            "-include", "cfg.h"]
+
+    def test_empty_and_unbalanced(self):
+        from futag.base_generator import BaseGenerator
+        assert BaseGenerator._preprocessor_flags("") == []
+        assert BaseGenerator._preprocessor_flags('cc -DA "-DB') == ["-DA"]

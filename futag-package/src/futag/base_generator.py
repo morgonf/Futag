@@ -18,6 +18,7 @@
 # **************************************************
 
 import json
+import shlex
 import logging
 import pathlib
 import copy
@@ -605,6 +606,54 @@ class BaseGenerator(ABC):
     #  Infrastructure methods                                             #
     # ------------------------------------------------------------------ #
 
+    @staticmethod
+    def _preprocessor_flags(command: str) -> list:
+        """-D, -U and -include options of a compile command, in order.
+
+        Both the joined (-DX=1) and the separate (-D X=1) spellings are kept.
+        """
+        try:
+            args = shlex.split(command or "")
+        except ValueError:
+            args = (command or "").split()
+        result = []
+        i = 0
+        while i < len(args):
+            a = args[i]
+            if a in ("-D", "-U", "-include") and i + 1 < len(args):
+                result += [a, args[i + 1]]
+                i += 2
+                continue
+            if (a.startswith("-D") or a.startswith("-U")) and len(a) > 2:
+                result.append(a)
+            i += 1
+        return result
+
+    def _compile_commands_index(self) -> dict:
+        """compile_commands.json as {file path: command}, read once.
+
+        The file used to be parsed and scanned linearly on every lookup, and
+        _search_return_types looked it up once per library function, so one
+        wrapper cost a full JSON parse per function (seconds per context on
+        a library with a few thousand functions). The index is rebuilt when
+        the file changes. The first entry for a path wins, as before.
+        """
+        path = self.build_path / "compile_commands.json"
+        try:
+            stamp = path.stat().st_mtime_ns
+        except OSError:
+            return {}
+        cached = getattr(self, "_cc_index", None)
+        if cached is not None and cached[0] == stamp:
+            return cached[1]
+        with open(path.as_posix()) as f:
+            commands = json.load(f)
+        index = {}
+        for command in commands:
+            index.setdefault(pathlib.Path(command["file"]).as_posix(), command)
+        self._cc_index = (stamp, index)
+        return index
+
     def _get_compile_command(self, file):
         """ Get the compile command of given file
 
@@ -614,27 +663,14 @@ class BaseGenerator(ABC):
         Returns:
             dict(compiler, command, file, location): dict consists of compiler type, compile command, file name, and file location.
         """
-        if (self.build_path / "compile_commands.json").exists():
-            compile_commands = self.build_path / "compile_commands.json"
-            with open(compile_commands.as_posix()) as f:
-                commands = json.load(f)
-            for command in commands:
-                if pathlib.Path(command["file"]) == pathlib.Path(file):
-                    extension = command["file"].split(".")[-1]
-                    if extension == "c":
-                        return {
-                            "compiler": "CC",
-                            "command": command["command"],
-                            "file": command["file"],
-                            "location": command["directory"]
-                        }
-                    else:
-                        return {
-                            "compiler": "CXX",
-                            "command": command["command"],
-                            "file": command["file"],
-                            "location": command["directory"]
-                        }
+        command = self._compile_commands_index().get(pathlib.Path(file).as_posix())
+        if command is not None:
+            return {
+                "compiler": "CC" if command["file"].split(".")[-1] == "c" else "CXX",
+                "command": command["command"],
+                "file": command["file"],
+                "location": command["directory"]
+            }
         if file.split(".")[-1] == "c":
             return {
                 "compiler": "CC",
@@ -771,16 +807,14 @@ class BaseGenerator(ABC):
 
     def _search_return_types(self, param_gen_list, curr_function, function_lists):
         result = []
+        compiler = self._get_compile_command(
+            curr_function["location"]["fullpath"])["compiler"]
         for f in function_lists:
             gen_list = []
             # To avoid infinite loop, we search only function with different name
             if f["qname"] == curr_function["qname"]:
                 continue
             # Search only simple function with the same return type
-
-            compiler_info = self._get_compile_command(
-                curr_function["location"]["fullpath"])
-            compiler = compiler_info["compiler"]
 
             if f["gen_return_type"] and f["gen_return_type"][0]["type_name"] == param_gen_list[0]["type_name"] and f["is_simple"]:
                 if (compiler != "CXX" and f["storage_class"] != SC_STATIC) or (compiler == "CXX" and not f["access_type"] in [AS_PROTECTED, AS_PRIVATE]):
@@ -2411,7 +2445,7 @@ class BaseGenerator(ABC):
                 target_file.write("".join(error_log_file.readlines()))
                 target_file.write("\n */\n")
 
-    def compile_targets(self, workers: int = 4, keep_failed: bool = False, extra_params: str = "", extra_include: str = "", extra_dynamiclink: str = "", flags: str = "", coverage: bool = False, keep_original: bool = True) -> None:
+    def compile_targets(self, workers: int = 4, keep_failed: bool = False, extra_params: str = "", extra_include: str = "", extra_dynamiclink: str = "", flags: str = "", coverage: bool = False, keep_original: bool = True, extra_link: str = "") -> None:
         """Compile all generated fuzz targets using the configured toolchain.
 
         Discovers generated source files under ``self.tmp_output_path``,
@@ -2435,6 +2469,9 @@ class BaseGenerator(ABC):
                 (space-separated string, e.g. "-lssl -lcrypto"). When
                 provided, overrides static library linking. Defaults
                 to "".
+            extra_link: Linker inputs appended after the library in
+                either mode (space-separated, e.g. "-lz -lbz2"), for the
+                library's own dependencies. Defaults to "".
             flags: Override default compiler flags entirely. When empty,
                 defaults to sanitizer + debug flags appropriate for the
                 target type. Defaults to "".
@@ -2498,6 +2535,11 @@ class BaseGenerator(ABC):
             # List of Pathlib (-I parameters) in compile command.
             # include_subdir = []
             include_paths = []
+            # The wrapper copies the #includes of the function's translation
+            # unit, so it has to see the same macros. Without them a private
+            # header guarded by the build configuration (HAVE_CONFIG_H and
+            # the like) stops at #error.
+            preproc_flags = self._preprocessor_flags(compiler_info["command"])
             if os.path.exists(compiler_info["location"]):
                 current_location = os.getcwd()
                 os.chdir(compiler_info["location"])
@@ -2559,11 +2601,12 @@ class BaseGenerator(ABC):
                         linking = extra_dynamiclink.split(" ")
                     else:
                         linking = static_lib
+                    linking = linking + [x for x in extra_link.split(" ") if x]
                     if self.target_type == LIBFUZZER:
-                        compiler_cmd = [compiler] + compiler_flags_libFuzzer.split(" ") + current_include + ["-I" + x for x in extra_include.split(
+                        compiler_cmd = [compiler] + compiler_flags_libFuzzer.split(" ") + preproc_flags + current_include + ["-I" + x for x in extra_include.split(
                             " ") if x.strip()] + extra_params.split(" ") + [target_src.as_posix()] + ["-o"] + [target_path] + linking
                     else:
-                        compiler_cmd = [compiler] + compiler_flags_aflplusplus.split(" ") + current_include + ["-I" + x for x in extra_include.split(
+                        compiler_cmd = [compiler] + compiler_flags_aflplusplus.split(" ") + preproc_flags + current_include + ["-I" + x for x in extra_include.split(
                             " ") if x.strip()] + extra_params.split(" ") + [target_src.as_posix()] + ["-o"] + [target_path] + linking
 
                     compile_cmd_list.append({

@@ -200,3 +200,48 @@ def test_analysis_db_keeps_macro_prefixed_definitions():
     funcs = {f["name"]: f for f in db["functions"]}
     assert "obj_count" in funcs
     assert funcs["obj_count"]["storage_class"] == 0
+
+
+class TestContextBlocker:
+    """Contexts that cannot give a compilable wrapper are counted, not emitted."""
+
+    def _gen(self):
+        gen = ContextGenerator.__new__(ContextGenerator)
+        gen.ctx_vars = {"a"}
+        gen.enum_consts = set()
+        return gen
+
+    @staticmethod
+    def _func(name, gen_types, storage=0, ftype=4):
+        return {"name": name, "storage_class": storage, "func_type": ftype,
+                "params": [{"gen_list": [{"gen_type": t} for t in g]} for g in gen_types]}
+
+    @staticmethod
+    def _call(*values):
+        return {"call": {"args": [{"init_type": 0, "value": v} for v in values]}}
+
+    def test_static_c_function(self):
+        from futag.sysmsg import SC_STATIC, FUNC_UNKNOW_RECORD
+        f = self._func("helper", [[0]], storage=SC_STATIC, ftype=FUNC_UNKNOW_RECORD)
+        assert self._gen()._context_blocker([(self._call("a"), f)]) == ("static_callee", "helper")
+
+    def test_static_cxx_member_allowed(self):
+        from futag.sysmsg import SC_STATIC, FUNC_STATIC
+        f = self._func("Cls::make", [[0]], storage=SC_STATIC, ftype=FUNC_STATIC)
+        assert self._gen()._context_blocker([(self._call("a"), f)]) is None
+
+    def test_unbound_object(self):
+        from futag.sysmsg import GEN_STRUCT, GEN_POINTER
+        f = self._func("use", [[GEN_STRUCT, GEN_POINTER]])
+        assert self._gen()._context_blocker([(self._call("param"), f)]) == ("unbound_object", "use(param)")
+
+    def test_unbound_data_and_bound_object_pass(self):
+        from futag.sysmsg import GEN_STRUCT, GEN_POINTER, GEN_CSTRING
+        f = self._func("use", [[GEN_STRUCT, GEN_POINTER], [GEN_CSTRING]])
+        assert self._gen()._context_blocker([(self._call("a", "data"), f)]) is None
+
+    def test_object_from_expression(self):
+        from futag.sysmsg import GEN_STRUCT, GEN_POINTER, ARG_INIT_UNKNOWN
+        f = self._func("check", [[GEN_STRUCT, GEN_POINTER]])
+        call = {"call": {"args": [{"init_type": ARG_INIT_UNKNOWN, "value": "&a->archive"}]}}
+        assert self._gen()._context_blocker([(call, f)]) == ("unbound_object", "check(&a->archive)")

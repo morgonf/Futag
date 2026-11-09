@@ -681,6 +681,49 @@ class ContextGenerator(Generator):
             }
         return name in self.enum_consts
 
+    # gen_type values an unbound argument cannot be built from fuzz input:
+    # the object has to come from somewhere, and the context does not say.
+    UNBUILDABLE_UNBOUND = (GEN_STRUCT, GEN_CLASS, GEN_UNION, GEN_INCOMPLETE,
+                           GEN_FUNCTION, GEN_UNKNOWN)
+
+    def _context_blocker(self, resolved):
+        """Why a resolved context cannot give a compilable wrapper, or None.
+
+        Two cases are known before generation and used to produce code with
+        an undeclared identifier:
+
+        * a callee with internal linkage (a C ``static`` function seen in a
+          context taken from the library's own code) cannot be called from
+          the wrapper's translation unit. Static C++ members are callable.
+        * an argument of object type (struct, class, incomplete type) that
+          is not a variable defined by the context: a parameter of the
+          consumer function, or an expression such as ``&a->archive``.
+          The generator cannot build such an object from fuzz input and
+          used to emit a call with an undeclared name. Data arguments are
+          fuzzed instead.
+
+        Args:
+            resolved (list): [(context call, function definition), ...].
+
+        Returns:
+            tuple | None: (stats bucket, detail) or None.
+        """
+        for call, func in resolved:
+            if (func.get("storage_class") == SC_STATIC
+                    and func.get("func_type") not in (FUNC_CXXMETHOD, FUNC_STATIC)):
+                return "static_callee", func["name"]
+        for call, func in resolved:
+            for idx, arg in enumerate(call["call"].get("args", [])[:len(func["params"])]):
+                init_type = arg.get("init_type")
+                if init_type == ARG_INIT_CONST:
+                    continue
+                if init_type == ARG_INIT_VARREF and self._is_bound_name(arg.get("value")):
+                    continue
+                gen_types = {g["gen_type"] for g in func["params"][idx].get("gen_list", [])}
+                if gen_types & set(self.UNBUILDABLE_UNBOUND):
+                    return "unbound_object", f"{func['name']}({arg.get('value')})"
+        return None
+
     def _find_context_function(self, ctx_call):
         """Resolve a consumer-context call to its definition in the analysis DB.
 
@@ -920,6 +963,8 @@ class ContextGenerator(Generator):
             "generated": 0,
             "missing_definition": 0,
             "empty": 0,
+            "static_callee": 0,
+            "unbound_object": 0,
             "rejected": 0,
         }
         self.unbound_args = 0
@@ -944,13 +989,13 @@ class ContextGenerator(Generator):
             self.ctx_vars = {item["var"] for item in curr_context if item["var"]}
             target_func = None
             missing = None
+            resolved = []
             for call in curr_context:
                 func = self._find_context_function(call["call"])
                 if func is None:
                     missing = call["call"].get("name")
                     break
-                target_func = func
-                self._gen_context_target_function(call, func, 0)
+                resolved.append((call, func))
 
             if missing is not None:
                 logger.warning(
@@ -958,6 +1003,15 @@ class ContextGenerator(Generator):
                     missing, len(call["call"].get("args", [])))
                 self.context_stats["missing_definition"] += 1
                 continue
+            reason = self._context_blocker(resolved)
+            if reason is not None:
+                bucket, detail = reason
+                logger.warning("Context skipped (%s): %s", bucket, detail)
+                self.context_stats[bucket] += 1
+                continue
+            for call, func in resolved:
+                target_func = func
+                self._gen_context_target_function(call, func, 0)
             if target_func is None:
                 self.context_stats["empty"] += 1
                 continue

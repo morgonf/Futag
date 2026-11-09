@@ -13,6 +13,8 @@
     "generated": 0,
     "missing_definition": 1,
     "empty": 0,
+    "static_callee": 0,
+    "unbound_object": 0,
     "rejected": 0
   }
 }
